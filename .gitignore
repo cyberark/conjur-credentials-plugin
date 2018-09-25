@@ -1,0 +1,10 @@
+# VIM
+*~
+
+# MVN target
+target/
+
+.settings/
+
+.classpath
+
