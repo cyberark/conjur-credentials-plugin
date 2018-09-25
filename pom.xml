@@ -9,7 +9,6 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>Conjur</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.32.1</jenkins.version>
@@ -79,4 +78,5 @@
 		</dependency>
     </dependencies>
     <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
+    <version>0.1</version>
 </project>

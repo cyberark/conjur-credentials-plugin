@@ -1,5 +1,6 @@
 package org.conjur.jenkins.api;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import hudson.security.ACL;
 import io.github.openunirest.http.HttpResponse;
 import io.github.openunirest.http.Unirest;
 import io.github.openunirest.http.exceptions.UnirestException;
+import io.github.openunirest.request.HttpRequestWithBody;
 import jenkins.model.Jenkins;
 
 
@@ -41,9 +43,9 @@ public class ConjurAPI {
 					  .routeParam("username", credential.getUsername())
 					  .body(credential.getPassword().getPlainText())
 					  .asString();
-			resultingToken = Base64.getEncoder().withoutPadding().encodeToString(response.getBody().getBytes());
+			resultingToken = Base64.getEncoder().withoutPadding().encodeToString(response.getBody().getBytes("UTF-8"));
 			LOGGER.log(Level.INFO,  "Conjur Authenticate response " + response.getStatus() + " - " + resultingToken);
-		} catch (UnirestException e) {
+		} catch (NullPointerException | UnirestException | UnsupportedEncodingException e) {
 			LOGGER.log(Level.SEVERE, "Error during Conjur Authentication: " + e.getMessage());
 			e.printStackTrace();
 		}
