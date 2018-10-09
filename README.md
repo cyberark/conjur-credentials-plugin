@@ -40,7 +40,6 @@ In the example Below, the username is defined as host/frontend/frontend-01 which
 
 ![Conjur Login Credential](docs/images/ConjurLogin-Credential.png)
 
-
 ### Global Configuration
 
 You can define a global configuration for Conjur, so any job could use this configuration (unless is overriden at folder level). Here you define the Conjur Account, and Appliance URL to use. 
@@ -88,7 +87,7 @@ node {
 
 You can use the option "Use secret text(s) or file(s)" in the "Build Environment" section of a Freestyle project to bind to Conjur Secrets.
 
-![Conjur Secret Definition](docs/images/SecretBindingsOnFreestyle.png)
+![Secret bindings on Freestyle Project](docs/images/SecretBindingsOnFreestyle.png)
 
 The secrets will be injected as environment variables to the build steps of the project. 
 
