@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-    Conjur Secrets plug-in
+    Plugin to retrieve secrets from CyberArk/Conjur
 </div>

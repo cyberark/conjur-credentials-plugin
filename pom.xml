@@ -15,6 +15,10 @@
         <java.level>8</java.level>
     </properties>
     <name>Conjur Secrets Plugin</name>
+    <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
+    <version>0.2</version>
+    <url>https://www.conjur.org</url>
+    
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
     <licenses>
         <license>
@@ -83,6 +87,4 @@
 		    <version>3.11.0</version>
 		</dependency>
     </dependencies>
-    <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
-    <version>0.2</version>
 </project>
