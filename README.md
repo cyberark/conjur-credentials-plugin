@@ -47,6 +47,7 @@ You can define a global configuration for Conjur, so any job could use this conf
 
 ![Global Configuration](docs/images/GlobalConfiguration.png)
 
+**Note**: The SSL Certificate can be linked to a certificate already stored in Jenkins (defined as credentials). If there is not SSL certificate associated, the requests to Conjur will fail unless there is a certificate locally defined in the cacerts of the JVM where the requests is being sent from or Conjur is not setup to use SSL. 
 
 ### Folder Property Configuration
 
@@ -54,6 +55,7 @@ You can override the global configuration by setting the Conjur Appliance inform
 
 ![Folder Property Configuration](docs/images/FolderConfiguration.png)
 
+**Note**: The SSL Certificate can be linked to a certificate already stored in Jenkins (defined as credentials). If there is not SSL certificate associated, the requests to Conjur will fail unless there is a certificate locally defined in the cacerts of the JVM where the requests is being sent from or Conjur is not setup to use SSL. 
 
 ### Conjur Secret Definition
 
