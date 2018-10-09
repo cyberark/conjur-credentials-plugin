@@ -2,7 +2,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="${%Conjur Appliance}">
-		<f:entry title="Inherit from parent?" description="If checked, this will be the starting point.">
+		<f:entry title="Inherit from parent?" description="If checked, All values will be inherited from parent (either parent folder or Global configuration.)">
 	    	<f:checkbox name="inheritFromParent" field="inheritFromParent" default="true" checked="${inheritFromParent}"/>
 	  	</f:entry>
         <f:property field="conjurConfiguration" header="${%Conjur Configuration}"/>

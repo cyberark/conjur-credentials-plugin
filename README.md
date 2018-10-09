@@ -63,15 +63,16 @@ You will need to define the secrets you want to access from Conjur in an explici
 
 
 
-### How to use it from a Jenkins pipeline script
-You can use `withCredentials` and use the class `ConjurSecretCredentialsBinding` to make reference to the Conjur secrets
+### How to use from a Jenkins pipeline script
+
+You can use `withCredentials` and use the symbol `conjurSecretCredential` to make reference to the Conjur secrets
 Here is an example showing how to fetch the secret from a Jenkins job pipeline definition.
 
 ```yml
 node {
    stage('Work') {
-      withCredentials([[$class: 'ConjurSecretCredentialsBinding', credentialsId: 'DB_PASSWORD', secretVariable: 'SECRET1', descriptionVariable: 'DESCRIPTION1']]) {
-         echo "Hello World $SECRET1  -  $DESCRIPTION1"
+      withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', variable: 'SECRET')]) {
+         echo "Hello World $SECRET"
       }
    }
    }
@@ -80,3 +81,13 @@ node {
    }
 }
 ```
+
+### How to use from a Jenkins Freestyle Project
+
+You can use the option "Use secret text(s) or file(s)" in the "Build Environment" section of a Freestyle project to bind to Conjur Secrets.
+
+![Conjur Secret Definition](docs/images/SecretBindingsOnFreestyle.png)
+
+The secrets will be injected as environment variables to the build steps of the project. 
+
+
