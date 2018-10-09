@@ -10,5 +10,8 @@
     <f:entry title="${%Conjur Auth Credential}" field="credentialID" name="credentialID">
     	<c:select/>
     </f:entry>
+    <f:entry title="${%Conjur SSL Certificate}" field="certificateCredentialID" name="certificateCredentialID">
+    	<c:select/>
+    </f:entry>
     
 </j:jelly>

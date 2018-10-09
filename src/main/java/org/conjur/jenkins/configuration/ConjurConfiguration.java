@@ -8,7 +8,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
@@ -32,6 +32,7 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	private String applianceURL;
     private String account;
     private String credentialID;
+    private String certificateCredentialID;
     
     public ConjurConfiguration() {	
     }
@@ -87,6 +88,15 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 		this.credentialID = credentialID;
 	}
 
+	public String getCertificateCredentialID() {
+		return certificateCredentialID;
+	}
+
+    @DataBoundSetter
+	public void setCertificateCredentialID(String certificateCredentialID) {
+		this.certificateCredentialID = certificateCredentialID;
+	}
+
 	@Extension
     public static class DescriptorImpl extends Descriptor<ConjurConfiguration> {
         @Override
@@ -96,9 +106,12 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
         
         public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
         	return new StandardListBoxModel().includeEmptyValue().includeAs(ACL.SYSTEM, item, StandardUsernamePasswordCredentials.class, URIRequirementBuilder.fromUri(uri).build());
-        
         }
 
+        public ListBoxModel doFillCertificateCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
+        	return new StandardListBoxModel().includeEmptyValue().includeAs(ACL.SYSTEM, item, StandardCertificateCredentials.class, URIRequirementBuilder.fromUri(uri).build());
+        }
+        
     }
     
     

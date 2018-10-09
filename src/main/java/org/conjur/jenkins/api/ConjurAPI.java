@@ -1,32 +1,45 @@
 package org.conjur.jenkins.api;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.CertificateCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import hudson.model.Run;
 import hudson.security.ACL;
-import io.github.openunirest.http.HttpResponse;
-import io.github.openunirest.http.Unirest;
-import io.github.openunirest.http.exceptions.UnirestException;
-import io.github.openunirest.request.HttpRequestWithBody;
 import jenkins.model.Jenkins;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class ConjurAPI {
 
 	private static final Logger LOGGER = Logger.getLogger( ConjurAPI.class.getName());
 
-	public static String getAuthorizationToken(ConjurConfiguration configuration, Run<?, ?> context) {
+	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration, Run<?, ?> context) throws IOException {
 		
 		String resultingToken = null;
 		
@@ -35,37 +48,93 @@ public class ConjurAPI {
 	                    Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
 	            CredentialsMatchers.withId(configuration.getCredentialID())
 	    );
-				
-		try {
+		
+		if (credential != null) {
 			LOGGER.log(Level.INFO, "Authenticating with Conjur");
-			HttpResponse<String> response = Unirest.post(String.format("%s/authn/{account}/{username}/authenticate", configuration.getApplianceURL()))
-					  .routeParam("account", configuration.getAccount())
-					  .routeParam("username", credential.getUsername())
-					  .body(credential.getPassword().getPlainText())
-					  .asString();
-			resultingToken = Base64.getEncoder().withoutPadding().encodeToString(response.getBody().getBytes("UTF-8"));
-			LOGGER.log(Level.INFO,  "Conjur Authenticate response " + response.getStatus() + " - " + resultingToken);
-		} catch (NullPointerException | UnirestException | UnsupportedEncodingException e) {
-			LOGGER.log(Level.SEVERE, "Error during Conjur Authentication: " + e.getMessage());
-			e.printStackTrace();
+			Request request = new Request.Builder().url(String.format("%s/authn/%s/%s/authenticate", 
+					configuration.getApplianceURL(),
+					configuration.getAccount(), 
+					URLEncoder.encode(credential.getUsername(), "utf-8")))
+					.post(RequestBody.create(MediaType.parse("text/plain"), credential.getPassword().getPlainText()))
+					.build();
+
+			Response response = client.newCall(request).execute();
+			resultingToken = Base64.getEncoder().withoutPadding().encodeToString(response.body().string().getBytes("UTF-8"));
+			LOGGER.log(Level.INFO,  "Conjur Authenticate response " + response.code() + " - " + response.message());
+			if (response.code() != 200) {
+				throw new IOException("Error authenticating to Conjur [" + response.code() +  " - " + response.message() + "\n" + resultingToken);
+			}
 		}
 		
 		return resultingToken;
 	}
 	
-	public static String getSecret(ConjurConfiguration configuration, String authToken, String variablePath) {
+	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken, String variablePath) throws IOException {
 		String result = null;
 		
-		HttpResponse<String> response = Unirest.get(String.format("%s/secrets/{account}/variable/{variablePath}", configuration.getApplianceURL()))
-				  .routeParam("account", configuration.getAccount())
-				  .routeParam("variablePath", variablePath)
-				  .header("Authorization", "Token token=\"" + authToken +"\"")
-				  .asString();
+		LOGGER.log(Level.INFO, "Fetching secret from Conjur");
+		Request request = new Request.Builder().url(String.format("%s/secrets/%s/variable/%s", 
+				                     configuration.getApplianceURL(), 
+				                     configuration.getAccount(), 
+				                     variablePath))
+				              .get()
+				              .addHeader("Authorization", "Token token=\"" + authToken +"\"")
+				              .build();
 		
-		result = response.getBody();
+		Response response = client.newCall(request).execute();
+		result = response.body().string();
+		LOGGER.log(Level.INFO,  "Fetch secret [" + variablePath + "] from Conjur response " + response.code() + " - " + response.message());
+		if (response.code() != 200) {
+			throw new IOException("Error fetching secret from Conjur [" + response.code() +  " - " + response.message() + "\n" + result);
+		}
 		
 		return result;
 	}
 	
+	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
+
+		OkHttpClient client = null;
+
+		CertificateCredentials certificate = CredentialsMatchers.firstOrNull(
+	            CredentialsProvider.lookupCredentials(CertificateCredentials.class,
+	                    Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+	            CredentialsMatchers.withId(configuration.getCertificateCredentialID())
+	    );
+		
+		if (certificate != null) {
+			try {
+				
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		        kmf.init(certificate.getKeyStore(), certificate.getPassword().getPlainText().toCharArray());
+		        KeyManager[] kms = kmf.getKeyManagers();
+		        
+		        KeyStore trustStore = KeyStore.getInstance("JKS");
+		        trustStore.load(null, null);
+		        Enumeration<String> e = certificate.getKeyStore().aliases();
+		        while (e.hasMoreElements()) {
+		        	String alias = e.nextElement();
+		        	trustStore.setCertificateEntry(alias, certificate.getKeyStore().getCertificate(alias));
+		        }
+		        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		        tmf.init(trustStore);
+		        TrustManager[] tms = tmf.getTrustManagers();
+		        
+		        SSLContext sslContext = null;
+		        sslContext = SSLContext.getInstance("TLS");
+		        sslContext.init(kms, tms, new SecureRandom());
+
+		        client = new OkHttpClient.Builder()
+			            .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tms[0])
+			            .build();
+			}
+			catch (Exception e) {
+			    throw new IllegalArgumentException("Error configuring server certificates.", e);
+			}
+		} else {
+			client = new OkHttpClient.Builder().build();
+		}
+		
+		return client;
+	}
 
 }

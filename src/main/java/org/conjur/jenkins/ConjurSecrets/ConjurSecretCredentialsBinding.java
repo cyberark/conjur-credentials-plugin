@@ -1,19 +1,16 @@
 package org.conjur.jenkins.ConjurSecrets;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
-
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundSetter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -21,51 +18,52 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 
 public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCredentials> {
+	
+	private String variable;
 
-	private String secretVariable;
-	private String descriptionVariable;
-
+	private static final Logger LOGGER = Logger.getLogger( ConjurSecretCredentialsBinding.class.getName());
+	
 	@DataBoundConstructor
-	public ConjurSecretCredentialsBinding(@Nullable String secretVariable, @Nullable String descriptionVariable, String credentialsId) {
+	public ConjurSecretCredentialsBinding(String credentialsId) {
 		super(credentialsId);
-		this.secretVariable = StringUtils.defaultIfBlank(secretVariable, "CONJUR_SECRET");
-		this.descriptionVariable = StringUtils.defaultIfBlank(descriptionVariable, "CREDENTIAL_DESCRIPTION");
 	}
-
-	public String getSecretVariable() {
-		return secretVariable;
+	
+	public String getVariable() {
+		return this.variable;
 	}
-
-	@Override
+	
+    @DataBoundSetter
+	public void setVariable(String variable) {
+    	LOGGER.log(Level.INFO, "Setting variable to " + variable);
+		this.variable = variable;
+	}
+	
+    @Override
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
 
-		ConjurSecretCredentials conjurSecretCredential = this.getCredentials(build);
+		ConjurSecretCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
-
-		Map<String, String> map = new HashMap<String, String>();
-		map.put(this.secretVariable, conjurSecretCredential.getSecret().getPlainText());
-		map.put(this.descriptionVariable,  conjurSecretCredential.getDescription());
 		
-		return new MultiEnvironment(map);
-	}
+
+		return new MultiEnvironment(Collections.singletonMap(variable, conjurSecretCredential.getSecret().getPlainText()));
+	}        
 
 	@Override
 	protected Class<ConjurSecretCredentials> type() {
 		return ConjurSecretCredentials.class;
 	}
 
-	@Override
-	public Set<String> variables() {
-        Set<String> variables = new HashSet<String>();
-        variables.add(this.secretVariable);
-        variables.add(this.descriptionVariable);
-        return variables;	
-    }
 	
+	@Symbol("conjurSecretCredential")
 	@Extension
     public static class DescriptorImpl extends BindingDescriptor<ConjurSecretCredentials> {
 
+		@Override 
+		public boolean requiresWorkspace() {
+            return false;
+        }
+		
         @Override
         protected Class<ConjurSecretCredentials> type() {
             return ConjurSecretCredentials.class;
@@ -76,5 +74,11 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
             return "Conjur Secret credentials";
         }
     }
-	
+
+
+	@Override
+	public Set<String> variables() {
+		return Collections.singleton(variable);
+	}
+		
 }

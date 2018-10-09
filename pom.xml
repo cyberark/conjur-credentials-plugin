@@ -76,7 +76,13 @@
 		    <artifactId>unirest-java</artifactId>
 		    <version>2.4.02</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
+		<dependency>
+		    <groupId>com.squareup.okhttp3</groupId>
+		    <artifactId>okhttp</artifactId>
+		    <version>3.11.0</version>
+		</dependency>
     </dependencies>
     <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
-    <version>0.1</version>
+    <version>0.2</version>
 </project>
