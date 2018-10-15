@@ -72,7 +72,8 @@ Here is an example showing how to fetch the secret from a Jenkins job pipeline d
 ```yml
 node {
    stage('Work') {
-      withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', variable: 'SECRET')]) {
+      withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', 
+                                              variable: 'SECRET')]) {
          echo "Hello World $SECRET"
       }
    }
