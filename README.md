@@ -1,5 +1,5 @@
 # conjur-credentials-plugin
-This Conjur plugin securely provides credentials to Jenkins jobs.  
+This Conjur plugin securely provides credentials stored in Conjur to Jenkins jobs.  
 
 ## Installation
 
@@ -18,8 +18,8 @@ As another option, you can use the latest .hpi found under the binaries folder.
 
 ### Install in Jenkins
 
-When you have the .hpi file, log into Jenkins as an administrator. Then go to *Jenkins* -> *Manage Jenkins* -> *Manage Plugins* -> 	*Advanced*. 
-In the "Upload Plugin" section, browse for the .hpi and upload it to Jenkins:
+When you have the .hpi file, log into Jenkins as an administrator. Then go to **Jenkins** -> **Manage Jenkins** -> **Manage Plugins** -> 	**Advanced**. 
+In the **Upload Plugin** section, browse for the .hpi and upload it to Jenkins:
 
 ![Upload Plugin](docs/images/UploadPlugin-Jenkins.png)
 
@@ -35,22 +35,20 @@ After installing the plugin and restarting Jenkins, you are ready to start.
 
 ### Conjur Login Credential
 
-The first step is to store the credential required for Jenkins to connect to Conjur. 
+The first step is to store the credential required for Jenkins to connect to Conjur. Click the **Credentials** tab.
 
- Define the credential as a standard "Username with password" credential. 
+ Define the credential as a standard "Username with password" credential. In the example below, the credentials are a Conjur host and its API key: 
 
-In the example below, the credentials are: 
-
-* Username is host/frontend/frontend-01. This host is defined in Conjur policy. 
-* Password is the API key for that host. 
+* **Username** is host/frontend/frontend-01. The host must already be defined as a host in Conjur policy. 
+* **Password** is the API key for that host. The API key is the value returned by Conjur when the host is loaded in policy. 
 
 ![Conjur Login Credential](docs/images/ConjurLogin-Credential.png)
 
 ### Global Configuration
 
-A global configuration allows any job to use the configuration (unless it is overridden at folder level).
+A global configuration allows any job to use the configuration, unless a folder-level configuration overrides the global configuration. Click the **Global Credentials** tab.
 
-On the **Global Configuration** page, define the Conjur Account and Appliance URL to use. 
+ Define the Conjur Account and Appliance URL to use. 
 
 ![Global Configuration](docs/images/GlobalConfiguration.png)
 
@@ -58,7 +56,7 @@ On the **Global Configuration** page, define the Conjur Account and Appliance UR
 
 ### Folder Property Configuration
 
-You can override the global configuration by setting the Conjur appliance information at folder level on the **Folder Property Configuration** page. 
+To set the Conjur appliance information at the folder level, cLick the **FolderLevel** tab. 
 
 If the checkbox "Inherit from parent?" is checked, the values set here are ignored, and values are taken from the parent folder.  If all folders up the hierarchy are set to inherit from its parent, the global configuration is used.
 
@@ -75,7 +73,7 @@ Requests to Conjur will fail unless:
 
 ### Conjur Secret Definition
 
-The secrets that you want to access from Conjur must be defined explicitly. Use the **Conjur Secret Definition** page to define secrets as credentials of kind "Conjur Secret Credential". 
+The secrets that you want to obtain from Conjur must be defined explicitly. Use the **ConjurSecret** tab to define secrets. Define them as credentials of kind "Conjur Secret Credential". 
 
 ![Conjur Secret Definition](docs/images/ConjurSecret-Credential.png)
 
