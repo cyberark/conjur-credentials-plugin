@@ -1,5 +1,5 @@
 # conjur-credentials-plugin
-This Conjur plugin securely provides credentials stored in Conjur to Jenkins jobs.  
+This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
 
 ## Installation
 
