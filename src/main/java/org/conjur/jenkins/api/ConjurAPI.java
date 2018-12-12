@@ -42,11 +42,16 @@ public class ConjurAPI {
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration, Run<?, ?> context) throws IOException {
 		
 		String resultingToken = null;
+
+		List<UsernamePasswordCredentials> availabe_credentials = CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+			context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList());
+
+		availabe_credentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+			Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
 		
 		UsernamePasswordCredentials credential = CredentialsMatchers.firstOrNull(
-	            CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-	                    Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
-	            CredentialsMatchers.withId(configuration.getCredentialID())
+			availabe_credentials,
+	        CredentialsMatchers.withId(configuration.getCredentialID())
 	    );
 		
 		if (credential != null) {
@@ -64,6 +69,9 @@ public class ConjurAPI {
 			if (response.code() != 200) {
 				throw new IOException("Error authenticating to Conjur [" + response.code() +  " - " + response.message() + "\n" + resultingToken);
 			}
+		}
+		else{
+			LOGGER.log(Level.INFO,  "Failed to find credentials for " + configuration.getCredentialID());
 		}
 		
 		return resultingToken;
