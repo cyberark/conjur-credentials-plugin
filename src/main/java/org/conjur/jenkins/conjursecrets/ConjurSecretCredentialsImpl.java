@@ -1,6 +1,9 @@
-package org.conjur.jenkins.ConjurSecrets;
+package org.conjur.jenkins.conjursecrets;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import javax.annotation.CheckForNull;
 
@@ -69,8 +72,10 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			String secretString = ConjurAPI.getSecret(client, this.conjurConfiguration, authToken, this.variablePath);
 			result = secretString;
 		} catch (IOException e) {
-			e.printStackTrace();
-			LOGGER.log(Level.WARNING, "EXCEPTION: " + e.getMessage());
+			Writer writer = new StringWriter();
+			e.printStackTrace(new PrintWriter(writer));
+			String s = writer.toString();
+			LOGGER.log(Level.WARNING, "EXCEPTION: " + s);
 			result = "EXCEPTION: " + e.getMessage();
 		}
 		return Secret.fromString(result);
@@ -95,19 +100,17 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	protected ConjurConfiguration getConfigurationFromContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
 		Item job = context.getParent();
-		ConjurConfiguration conjurConfiguration = GlobalConjurConfiguration.get().getConjurConfiguration();;
+		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
 		for(ItemGroup<? extends Item> g = job.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()  ) {
 			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties().get(FolderConjurConfiguration.class);
-			if (fconf == null || fconf.getInheritFromParent()) {
-				continue;
-			} else {
+			if (!(fconf == null || fconf.getInheritFromParent())) {
 				// take the folder Conjur Configuration
-				conjurConfiguration = fconf.getConjurConfiguration();
+				conjurConfig = fconf.getConjurConfiguration();
 				break;
 			}
 		}
-		LOGGER.log(Level.INFO, "<= " + conjurConfiguration.getApplianceURL());
-		return conjurConfiguration;
+		LOGGER.log(Level.INFO, "<= " + conjurConfig.getApplianceURL());
+		return conjurConfig;
 	}
 
 	

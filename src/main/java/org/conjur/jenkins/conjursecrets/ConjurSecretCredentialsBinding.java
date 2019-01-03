@@ -1,4 +1,4 @@
-package org.conjur.jenkins.ConjurSecrets;
+package org.conjur.jenkins.conjursecrets;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 	
     @DataBoundSetter
 	public void setVariable(String variable) {
-    	LOGGER.log(Level.INFO, "Setting variable to " + variable);
+    	LOGGER.log(Level.INFO, "Setting variable to {0}", variable);
 		this.variable = variable;
 	}
 	
@@ -44,7 +44,6 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 
 		ConjurSecretCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
-		
 
 		return new MultiEnvironment(Collections.singletonMap(variable, conjurSecretCredential.getSecret().getPlainText()));
 	}        

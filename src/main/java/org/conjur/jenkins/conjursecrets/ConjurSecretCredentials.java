@@ -1,4 +1,4 @@
-package org.conjur.jenkins.ConjurSecrets;
+package org.conjur.jenkins.conjursecrets;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
