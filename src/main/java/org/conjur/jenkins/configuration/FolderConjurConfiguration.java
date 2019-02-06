@@ -10,15 +10,15 @@ import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
 import hudson.Extension;
 
 public class FolderConjurConfiguration extends AbstractFolderProperty<AbstractFolder<?>> {
-	
-    private Boolean inheritFromParent = true;
+
+	private Boolean inheritFromParent = true;
 	private ConjurConfiguration conjurConfiguration;
 
-    @DataBoundConstructor
-    public FolderConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-    	super();
-        this.conjurConfiguration = conjurConfiguration;
-    }
+	@DataBoundConstructor
+	public FolderConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+		super();
+		this.conjurConfiguration = conjurConfiguration;
+	}
 
 	public ConjurConfiguration getConjurConfiguration() {
 		return conjurConfiguration;
@@ -39,6 +39,6 @@ public class FolderConjurConfiguration extends AbstractFolderProperty<AbstractFo
 	}
 
 	@Extension
-    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor {
-    }
+	public static class DescriptorImpl extends AbstractFolderPropertyDescriptor {
+	}
 }
