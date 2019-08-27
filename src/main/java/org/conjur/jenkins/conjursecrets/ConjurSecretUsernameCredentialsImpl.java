@@ -1,6 +1,8 @@
 package org.conjur.jenkins.conjursecrets;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,6 +12,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -28,22 +31,24 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
-		implements ConjurSecretUsernameCredentials {
+		implements ConjurSecretUsernameCredentials, SSHUserPrivateKey {
 
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameCredentialsImpl.class.getName());
 
 	private String username;
 	private String credentialID;
 	private ConjurConfiguration conjurConfiguration;
+	private Secret passphrase;
 
 	transient Run<?, ?> context;
 
 	@DataBoundConstructor
 	public ConjurSecretUsernameCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
-			ConjurConfiguration conjurConfiguration, String description) {
+			ConjurConfiguration conjurConfiguration, Secret passphrase, String description) {
 		super(scope, id, description);
 		this.username = username;
 		this.credentialID = credentialID;
+		this.passphrase = passphrase;
 		this.conjurConfiguration = conjurConfiguration;
 	}
 
@@ -87,6 +92,17 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 			credential.setConjurConfiguration(conjurConfiguration);
 
 	}
+	
+	@Override
+    public Secret getPassphrase() {
+        return passphrase;
+    }
+	
+	@DataBoundSetter
+	public void setPassphrase(Secret passphrase) {
+		this.passphrase = passphrase;
+	}
+
 
 	@Extension
 	public static class DescriptorImpl extends CredentialsDescriptor {
@@ -139,6 +155,19 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	public Secret getPassword() {
 		LOGGER.log(Level.INFO, "Getting Password");
 		return getSecret();
+	}
+
+	@Override
+	public String getPrivateKey() {
+		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
+		return getSecret().getPlainText();
+	}
+
+	@Override
+	public List<String> getPrivateKeys() {
+		List<String> result = new ArrayList<String>();
+		result.add(getPrivateKey());
+		return result;
 	}
 
 }
