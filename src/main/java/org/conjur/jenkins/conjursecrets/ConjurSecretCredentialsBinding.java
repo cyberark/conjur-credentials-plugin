@@ -52,7 +52,6 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 	@Override
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
-
 		ConjurSecretCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
 

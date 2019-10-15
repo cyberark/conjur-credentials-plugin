@@ -57,7 +57,12 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 
 	@DataBoundConstructor
 	public ConjurConfiguration(String applianceURL, String account) {
-		this.applianceURL = applianceURL;
+		if (applianceURL.endsWith("/")) {
+			// Remove trailing slash from appliance URL 
+			this.applianceURL = applianceURL.substring(0, applianceURL.length() - 1);
+		} else {
+			this.applianceURL = applianceURL;
+		}
 		this.account = account;
 	}
 
