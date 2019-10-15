@@ -74,6 +74,12 @@
 		    <artifactId>credentials-binding</artifactId>
 		    <version>1.16</version>
 		</dependency>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.modules/instance-identity -->
+        <dependency>
+            <groupId>org.jenkins-ci.modules</groupId>
+            <artifactId>instance-identity</artifactId>
+            <version>2.1</version>
+        </dependency>
 		<!--  UNIREST -->
 		<dependency>
 		    <groupId>io.github.openunirest</groupId>
@@ -86,5 +92,12 @@
 		    <artifactId>okhttp</artifactId>
 		    <version>3.11.0</version>
 		</dependency>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.7.9.6</version>
+        </dependency>
+
     </dependencies>
 </project>

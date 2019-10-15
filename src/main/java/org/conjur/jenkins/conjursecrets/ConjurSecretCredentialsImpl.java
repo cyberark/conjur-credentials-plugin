@@ -11,6 +11,7 @@ import javax.annotation.CheckForNull;
 
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -26,6 +27,7 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Run;
 import hudson.util.Secret;
+import hudson.model.Job;
 import okhttp3.OkHttpClient;
 
 public class ConjurSecretCredentialsImpl extends BaseStandardCredentials implements ConjurSecretCredentials {
@@ -64,16 +66,25 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
 		Item job = context.getParent();
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
-		for (ItemGroup<? extends Item> g = job
-				.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
-			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
-					.get(FolderConjurConfiguration.class);
-			if (!(fconf == null || fconf.getInheritFromParent())) {
-				// take the folder Conjur Configuration
-				conjurConfig = fconf.getConjurConfiguration();
-				break;
+
+		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
+
+		if (!(conjurJobConfig == null || conjurJobConfig.getInheritFromParent())) {
+			// Taking the configuration from the Job
+			conjurConfig = conjurJobConfig.getConjurConfiguration();
+		} else {
+			for (ItemGroup<? extends Item> g = job
+					.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
+				FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
+						.get(FolderConjurConfiguration.class);
+				if (!(fconf == null || fconf.getInheritFromParent())) {
+					// take the folder Conjur Configuration
+					conjurConfig = fconf.getConjurConfiguration();
+					break;
+				}
 			}
 		}
+
 		LOGGER.log(Level.INFO, "<= " + conjurConfig.getApplianceURL());
 		return conjurConfig;
 	}
