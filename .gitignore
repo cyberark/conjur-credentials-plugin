@@ -8,3 +8,7 @@ target/
 
 .classpath
 
+.vscode/settings.json
+.vscode/tasks.json
+.factorypath
+.DS_Store

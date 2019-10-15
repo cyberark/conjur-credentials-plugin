@@ -6,7 +6,7 @@
         {
             "label": "compile",
             "type": "shell",
-            "command": "mvn install -DskipTests",
+            "command": "mvn clean install -DskipTests",
             "group": "build"
         },
         {
