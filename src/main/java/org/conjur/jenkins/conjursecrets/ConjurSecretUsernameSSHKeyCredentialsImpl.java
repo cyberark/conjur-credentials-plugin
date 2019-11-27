@@ -13,10 +13,10 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.Run;
@@ -30,40 +30,24 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
-public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
-		implements ConjurSecretUsernameCredentials {
+public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
+implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
 
-	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameCredentialsImpl.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameSSHKeyCredentialsImpl.class.getName());
 
-	private String username;
 	private String credentialID;
 	private ConjurConfiguration conjurConfiguration;
+	private Secret passphrase;
 
 	transient Run<?, ?> context;
 
 	@DataBoundConstructor
-	public ConjurSecretUsernameCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
-			ConjurConfiguration conjurConfiguration, String description) {
-		super(scope, id, description);
-		this.username = username;
+	public ConjurSecretUsernameSSHKeyCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
+			ConjurConfiguration conjurConfiguration, Secret passphrase, String description) {
+		super(scope, id, username, description);
 		this.credentialID = credentialID;
+		this.passphrase = passphrase;
 		this.conjurConfiguration = conjurConfiguration;
-	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	@Override
-	public String getUsername() {
-		LOGGER.log(Level.INFO, "Get UserName => {0}", this.username);
-		return this.username;
-	}
-
-	@DataBoundSetter
-	public void setUserName(String username) {
-		this.username = username;
 	}
 
 	public String getCredentialID() {
@@ -91,12 +75,22 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	}
 	
+    public Secret getPassphrase() {
+        return passphrase;
+    }
+	
+	@DataBoundSetter
+	public void setPassphrase(Secret passphrase) {
+		this.passphrase = passphrase;
+	}
+
+
 	@Extension
 	public static class DescriptorImpl extends CredentialsDescriptor {
 
 		@Override
 		public String getDisplayName() {
-			return "Conjur Secret Username Credential";
+			return "Conjur Secret Username SSHKey Credential";
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
@@ -108,7 +102,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	@Override
 	public String getDisplayName() {
-		return "ConjurSecretUsername:" + this.username;
+		return "ConjurSecretUsernameSSHKey:" + this.username;
 	}
 
 	@Override
@@ -117,8 +111,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		this.context = context;
 	}
 
-	@Override
-	public Secret getSecret() {
+	private Secret getSecret() {
 
 		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
 				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
@@ -139,9 +132,16 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	}
 
 	@Override
-	public Secret getPassword() {
-		LOGGER.log(Level.INFO, "Getting Password");
-		return getSecret();
+	public String getPrivateKey() {
+		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
+		return getSecret().getPlainText();
+	}
+
+	@Override
+	public List<String> getPrivateKeys() {
+		List<String> result = new ArrayList<String>();
+		result.add(getPrivateKey());
+		return result;
 	}
 
 }
