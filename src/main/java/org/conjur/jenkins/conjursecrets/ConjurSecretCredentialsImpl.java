@@ -27,7 +27,6 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Run;
 import hudson.util.Secret;
-import hudson.model.Job;
 import okhttp3.OkHttpClient;
 
 public class ConjurSecretCredentialsImpl extends BaseStandardCredentials implements ConjurSecretCredentials {

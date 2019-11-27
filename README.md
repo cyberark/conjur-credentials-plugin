@@ -92,7 +92,6 @@ node {
          echo "Hello World $SECRET"
       }
    }
-   }
    stage('Results') {
       echo "Finished!"
    }

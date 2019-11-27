@@ -31,24 +31,22 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
-		implements ConjurSecretUsernameCredentials, SSHUserPrivateKey {
+		implements ConjurSecretUsernameCredentials {
 
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameCredentialsImpl.class.getName());
 
 	private String username;
 	private String credentialID;
 	private ConjurConfiguration conjurConfiguration;
-	private Secret passphrase;
 
 	transient Run<?, ?> context;
 
 	@DataBoundConstructor
 	public ConjurSecretUsernameCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
-			ConjurConfiguration conjurConfiguration, Secret passphrase, String description) {
+			ConjurConfiguration conjurConfiguration, String description) {
 		super(scope, id, description);
 		this.username = username;
 		this.credentialID = credentialID;
-		this.passphrase = passphrase;
 		this.conjurConfiguration = conjurConfiguration;
 	}
 
@@ -93,17 +91,6 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	}
 	
-	@Override
-    public Secret getPassphrase() {
-        return passphrase;
-    }
-	
-	@DataBoundSetter
-	public void setPassphrase(Secret passphrase) {
-		this.passphrase = passphrase;
-	}
-
-
 	@Extension
 	public static class DescriptorImpl extends CredentialsDescriptor {
 
@@ -155,19 +142,6 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	public Secret getPassword() {
 		LOGGER.log(Level.INFO, "Getting Password");
 		return getSecret();
-	}
-
-	@Override
-	public String getPrivateKey() {
-		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
-		return getSecret().getPlainText();
-	}
-
-	@Override
-	public List<String> getPrivateKeys() {
-		List<String> result = new ArrayList<String>();
-		result.add(getPrivateKey());
-		return result;
 	}
 
 }
