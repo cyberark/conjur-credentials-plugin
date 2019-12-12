@@ -33,6 +33,11 @@ import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
 implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameSSHKeyCredentialsImpl.class.getName());
 
 	private String credentialID;
@@ -70,6 +75,20 @@ implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
 				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(this.getCredentialID()));
+		
+        if(credential == null) {
+        	LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+            Item folder;
+            Jenkins instance = Jenkins.getInstance();
+            if(instance != null) {
+                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
+        		credential = CredentialsMatchers.firstOrNull(
+        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+        						Collections.<DomainRequirement>emptyList()),
+        				CredentialsMatchers.withId(this.getCredentialID()));
+            }
+        }
+		
 		if (credential != null)
 			credential.setConjurConfiguration(conjurConfiguration);
 
@@ -118,6 +137,19 @@ implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(this.getCredentialID()));
 
+        if(credential == null) {
+        	LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+            Item folder;
+            Jenkins instance = Jenkins.getInstance();
+            if(instance != null) {
+                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
+        		credential = CredentialsMatchers.firstOrNull(
+        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+        						Collections.<DomainRequirement>emptyList()),
+        				CredentialsMatchers.withId(this.getCredentialID()));
+            }
+        }
+		
 		Secret secret = null;
 
 		if (credential != null) {
