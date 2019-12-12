@@ -203,7 +203,7 @@ public class ConjurAPI {
 				CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
-
+		
 		if (certificate != null) {
 			try {
 

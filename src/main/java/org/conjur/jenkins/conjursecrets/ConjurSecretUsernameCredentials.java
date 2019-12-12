@@ -27,7 +27,7 @@ public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswor
 		@Nonnull
 		@Override
 		public String getName(@Nonnull ConjurSecretUsernameCredentials c) {
-			return c.getUsername() + "/*ConjurSecretUsername*" + " (" + c.getDescription() + ")";
+			return c.getDisplayName() + "/*ConjurSecretUsername*" + " (" + c.getDescription() + ")";
 		}
 	}
 

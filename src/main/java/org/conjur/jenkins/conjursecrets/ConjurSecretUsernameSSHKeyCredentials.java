@@ -25,7 +25,7 @@ public interface ConjurSecretUsernameSSHKeyCredentials extends StandardUsernameC
 		@Nonnull
 		@Override
 		public String getName(@Nonnull ConjurSecretUsernameSSHKeyCredentials c) {
-			return c.getUsername() + "/*ConjurSecretUsernameSSHKey*" + " (" + c.getDescription() + ")";
+			return c.getDisplayName() + "/*ConjurSecretUsernameSSHKey*" + " (" + c.getDescription() + ")";
 		}
 	}
 
