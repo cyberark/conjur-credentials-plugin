@@ -6,12 +6,13 @@ import org.conjur.jenkins.configuration.ConjurConfiguration;
 
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.NameWith;
-import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+
 import hudson.model.Run;
 
 @NameWith(value = ConjurSecretUsernameSSHKeyCredentials.NameProvider.class, priority = 1)
 
-public interface ConjurSecretUsernameSSHKeyCredentials extends StandardUsernameCredentials {
+public interface ConjurSecretUsernameSSHKeyCredentials extends SSHUserPrivateKey {
 
 	String getDisplayName();
 
