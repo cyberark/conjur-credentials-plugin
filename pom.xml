@@ -16,7 +16,7 @@
     </properties>
     <name>Conjur Secrets Plugin</name>
     <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
-    <version>0.7</version>
+    <version>0.8</version>
     <url>https://www.conjur.org</url>
     
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
