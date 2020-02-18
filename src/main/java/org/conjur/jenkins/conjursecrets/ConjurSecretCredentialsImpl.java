@@ -13,6 +13,7 @@ import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
+import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -94,11 +95,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			String secretString = ConjurAPI.getSecret(client, this.conjurConfiguration, authToken, this.variablePath);
 			result = secretString;
 		} catch (IOException e) {
-			Writer writer = new StringWriter();
-			e.printStackTrace(new PrintWriter(writer));
-			String s = writer.toString();
-			LOGGER.log(Level.WARNING, "EXCEPTION: " + s);
-			result = "EXCEPTION: " + e.getMessage();
+			LOGGER.log(Level.WARNING, "EXCEPTION: " + e.getMessage());
+			throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
 		return Secret.fromString(result);
 	}
