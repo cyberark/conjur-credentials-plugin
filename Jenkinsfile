@@ -5,6 +5,13 @@ pipeline {
         jdk 'jdk8'
     }
     stages {
+        stage('Validate') {
+         parallel {
+            stage('Changelog') {
+                 steps { sh './parse-changelog.sh' }
+            }
+        }
+    
         stage ('Initialize') {
             steps {
                 sh '''
@@ -24,5 +31,7 @@ pipeline {
                 }
             }
         }
+    }
+
     }
 }
