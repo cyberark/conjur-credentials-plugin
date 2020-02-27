@@ -63,8 +63,11 @@ public class ConjurSecretUsernameSSHKeyCredentialsBinding extends MultiBinding<C
 		conjurSecretCredential.setContext(build);
 
 		Map<String, String> m = new HashMap<>();
-		m.put(usernameVariable, conjurSecretCredential.getUsername());
-		m.put(secretVariable, conjurSecretCredential.getPrivateKey());
+		String usernameValue = conjurSecretCredential.getUsername();
+		String secretValue = conjurSecretCredential.getPrivateKey();
+		
+		m.put(usernameVariable, usernameValue);
+		m.put(secretVariable, secretValue);
 		return new MultiEnvironment(m);
 
 	}
@@ -78,8 +81,8 @@ public class ConjurSecretUsernameSSHKeyCredentialsBinding extends MultiBinding<C
 	}
 
 	@DataBoundSetter
-	public void setPasswordVariable(String secretVariable) {
-		LOGGER.log(Level.INFO, "Setting Password variable to {0}", secretVariable);
+	public void setSecretVariable(String secretVariable) {
+		LOGGER.log(Level.INFO, "Setting Secret variable to {0}", secretVariable);
 		this.secretVariable = secretVariable;
 	}
 
