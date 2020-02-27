@@ -6,7 +6,7 @@
     <f:textbox field="usernameVariable" name="usernameVariable" default="USERNAME"/>
   </f:entry>
   <f:entry title="${%Secret Variable}">
-    <f:textbox field="passwordVariable" name="secretVariable" default="CONJUR_SECRET"/>
+    <f:textbox field="secretVariable" name="secretVariable" default="CONJUR_SECRET"/>
   </f:entry>
 </f:section>
 </j:jelly>
