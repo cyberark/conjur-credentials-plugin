@@ -86,6 +86,12 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		}
 
 		LOGGER.log(Level.INFO, "<= " + conjurConfig.getApplianceURL());
+		if (conjurConfig != null) {
+			LOGGER.log(Level.INFO, "Conjur configuration provided");
+			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfig.getApplianceURL());
+			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfig.getAccount());
+			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfig.getCredentialID());
+		}
 		return conjurConfig;
 	}
 
