@@ -12,7 +12,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
@@ -31,7 +30,7 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
-implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
+implements ConjurSecretUsernameSSHKeyCredentials {
 
 	/**
 	 * 
@@ -145,7 +144,10 @@ implements ConjurSecretUsernameSSHKeyCredentials, SSHUserPrivateKey {
 				CredentialsMatchers.withId(this.getCredentialID()));
 
         if(credential == null) {
-        	LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+			LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+			if (context == null) {
+				
+			}
             Item folder;
             Jenkins instance = Jenkins.getInstance();
             if(instance != null) {
