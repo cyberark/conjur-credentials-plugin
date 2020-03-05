@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -146,7 +147,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
         if(credential == null) {
 			LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
 			if (context == null) {
-				
+				throw new InvalidConjurSecretException("Unable to find credential at Global Instance Level and no current context to determine folder provided");
 			}
             Item folder;
             Jenkins instance = Jenkins.getInstance();
