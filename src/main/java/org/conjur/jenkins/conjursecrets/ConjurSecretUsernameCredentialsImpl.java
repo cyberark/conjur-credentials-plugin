@@ -93,21 +93,18 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(this.getCredentialID()));
 
-		if(credential == null) {
+		if(credential == null && context != null) {
             LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder;
-            Jenkins instance = Jenkins.getInstance();
-            if(instance != null) {
-                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
-        		credential = CredentialsMatchers.firstOrNull(
-        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-        						Collections.<DomainRequirement>emptyList()),
-        				CredentialsMatchers.withId(this.getCredentialID()));
-            }
-		} else {
-			credential.setConjurConfiguration(conjurConfiguration);
+            Item folder = Jenkins.getInstance().instance.getItemByFullName(context.getParent().getParent().getFullName());
+			credential = CredentialsMatchers.firstOrNull(
+					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+							Collections.<DomainRequirement>emptyList()),
+					CredentialsMatchers.withId(this.getCredentialID()));
 		}
-		
+
+		if (credential != null)
+			credential.setConjurConfiguration(conjurConfiguration);
+
 	}
 	
 	@Extension
