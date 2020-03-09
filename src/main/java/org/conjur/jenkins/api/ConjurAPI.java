@@ -138,60 +138,6 @@ public class ConjurAPI {
 		// Check for Just-In-time Credential Access
 		if (context != null) {
 			setConjurAuthnForJITCredentialAccess(context, conjurAuthn);
-
-			String jobName = context.getParent().getFullName();
-			int buildNumber = context.getNumber();
-			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
-			ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
-			if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
-				String prefix = conjurJobConfig.getHostPrefix();
-				LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
-				conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-				conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
-				RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
-				LOGGER.log(Level.INFO, privateKey.getAlgorithm());
-				// sign using the private key
-				String challenge = jobName + "-" + buildNumber;
-				LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
-				String signatureString = null;
-				try {
-					Signature sig = Signature.getInstance("SHA256withRSA");
-					sig.initSign(privateKey);
-					sig.update(challenge.getBytes());
-					signatureString = Base64.getEncoder().encodeToString(sig.sign());
-					LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
-				} catch (InvalidKeyException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SignatureException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				// Build the response Body
-				Map<String, String> body = new HashMap<String, String>();
-				body.put("buildNumber", String.valueOf(buildNumber));
-				body.put("signature", signatureString);
-				body.put("keyAlgorithm", privateKey.getAlgorithm());
-				if (prefix != null && prefix.length() > 0) {
-					body.put("jobProperty_hostPrefix", conjurJobConfig.getHostPrefix());
-				}
-
-				ObjectMapper objectMapper = new ObjectMapper();
-
-				try {
-					String jsonResp = objectMapper.writeValueAsString(body);
-					conjurAuthn.apiKey = jsonResp;
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
-
-			}
 		}
 
 		return conjurAuthn;
