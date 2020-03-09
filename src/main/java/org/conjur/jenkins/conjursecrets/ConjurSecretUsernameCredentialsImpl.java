@@ -79,6 +79,14 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+
+		if (conjurConfiguration != null) {
+			LOGGER.log(Level.INFO, "Conjur configuration provided");
+			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
+			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
+			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
+		}
+
 		this.conjurConfiguration = conjurConfiguration;
 		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
 				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
@@ -96,18 +104,10 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
         						Collections.<DomainRequirement>emptyList()),
         				CredentialsMatchers.withId(this.getCredentialID()));
             }
+		} else {
+			credential.setConjurConfiguration(conjurConfiguration);
 		}
 		
-		if (conjurConfiguration != null) {
-			LOGGER.log(Level.INFO, "Conjur configuration provided");
-			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
-			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
-			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
-		}
-
-		if (credential != null)
-			credential.setConjurConfiguration(conjurConfiguration);
-
 	}
 	
 	@Extension
