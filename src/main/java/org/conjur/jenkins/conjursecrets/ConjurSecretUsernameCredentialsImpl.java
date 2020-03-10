@@ -95,7 +95,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 		if(credential == null && context != null) {
             LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder = Jenkins.getInstance().instance.getItemByFullName(context.getParent().getParent().getFullName());
+            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
 			credential = CredentialsMatchers.firstOrNull(
 					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
 							Collections.<DomainRequirement>emptyList()),
