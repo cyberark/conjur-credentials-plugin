@@ -149,7 +149,6 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 			return null;
 		}
 
-
 	}
 	
 	@Override

@@ -135,43 +135,45 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	@Override
 	public void setContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Set Context");
-		this.context = context;
+		if (context != null)
+			this.context = context;
 	}
 
-	private Secret getSecret() {
+	private Secret secretFromCredentialWithConjurConfigAndContext(ConjurSecretCredentials credential) {
 
+		if (credential != null) {
+			credential.setConjurConfiguration(conjurConfiguration);
+			credential.setContext(context);
+			return credential.getSecret();
+			} else {
+			LOGGER.log(Level.INFO, "NOT FOUND!");
+			return null;
+		}
+
+	}
+
+	public Secret getSecret() {
+
+		LOGGER.log(Level.INFO, "* CredentialID: {0}", this.getCredentialID());
+		
 		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
 				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(this.getCredentialID()));
-
+		
         if(credential == null) {
-			LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-			if (context == null) {
-				throw new InvalidConjurSecretException("Unable to find credential at Global Instance Level and no current context to determine folder provided");
-			}
-            Item folder;
-            Jenkins instance = Jenkins.getInstance();
-            if(instance != null) {
-                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
-        		credential = CredentialsMatchers.firstOrNull(
-        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-        						Collections.<DomainRequirement>emptyList()),
-        				CredentialsMatchers.withId(this.getCredentialID()));
+            LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+            if (context == null) {
+                throw new InvalidConjurSecretException("Unable to find credential at Global Instance Level and no current context to determine folder provided");
             }
+            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
+    		credential = CredentialsMatchers.firstOrNull(
+    				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+    						Collections.<DomainRequirement>emptyList()),
+    				CredentialsMatchers.withId(this.getCredentialID()));
         }
 		
-		Secret secret = null;
-
-		if (credential != null) {
-			if (conjurConfiguration != null)
-				credential.setConjurConfiguration(conjurConfiguration);
-			if (context != null)
-				credential.setContext(context);
-			secret = credential.getSecret();
-		}
-
-		return secret;
+		return secretFromCredentialWithConjurConfigAndContext(credential);
 	}
 
 	@Override
