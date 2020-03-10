@@ -133,6 +133,24 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		this.context = context;
 	}
 
+	private Secret secretFromCredentialWithConjurConfigAndContext(ConjurSecretCredentials credential) {
+
+		Secret secret = null;
+
+		if (credential != null) {
+			if (conjurConfiguration != null)
+				credential.setConjurConfiguration(conjurConfiguration);
+			if (context != null)
+				credential.setContext(context);
+			secret = credential.getSecret();
+		} else {
+			LOGGER.log(Level.INFO, "NOT FOUND!");
+		}
+
+		return secret;
+
+	}
+	
 	@Override
 	public Secret getSecret() {
 
@@ -148,30 +166,14 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
             if (context == null) {
                 throw new InvalidConjurSecretException("Unable to find credential at Global Instance Level and no current context to determine folder provided");
             }
-            Item folder;
-            Jenkins instance = Jenkins.getInstance();
-            if(instance != null) {
-                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
-        		credential = CredentialsMatchers.firstOrNull(
-        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-        						Collections.<DomainRequirement>emptyList()),
-        				CredentialsMatchers.withId(this.getCredentialID()));
-            }
+            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
+    		credential = CredentialsMatchers.firstOrNull(
+    				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+    						Collections.<DomainRequirement>emptyList()),
+    				CredentialsMatchers.withId(this.getCredentialID()));
         }
 		
-		Secret secret = null;
-
-		if (credential != null) {
-			if (conjurConfiguration != null)
-				credential.setConjurConfiguration(conjurConfiguration);
-			if (context != null)
-				credential.setContext(context);
-			secret = credential.getSecret();
-		} else {
-			LOGGER.log(Level.INFO, "NOT FOUND!");
-		}
-
-		return secret;
+		return secretFromCredentialWithConjurConfigAndContext(credential);
 	}
 
 	@Override
