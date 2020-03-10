@@ -68,34 +68,35 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 		return conjurConfiguration;
 	}
 
-	@DataBoundSetter
-	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-		this.conjurConfiguration = conjurConfiguration;
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(this.getCredentialID()));
-		
-        if(credential == null) {
-        	LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder;
-            Jenkins instance = Jenkins.getInstance();
-            if(instance != null) {
-                folder = instance.getItemByFullName(context.getParent().getParent().getFullName());
-        		credential = CredentialsMatchers.firstOrNull(
-        				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-        						Collections.<DomainRequirement>emptyList()),
-        				CredentialsMatchers.withId(this.getCredentialID()));
-            }
-		}
-		
+	private void logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		if (conjurConfiguration != null) {
 			LOGGER.log(Level.INFO, "Conjur configuration provided");
 			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
 			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
 			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
 		}
-		
+	}
+
+	@DataBoundSetter
+	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+
+		logConjurConfiguration(conjurConfiguration);
+
+		this.conjurConfiguration = conjurConfiguration;
+		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
+				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
+						Collections.<DomainRequirement>emptyList()),
+				CredentialsMatchers.withId(this.getCredentialID()));
+
+		if(credential == null && context != null) {
+            LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
+			credential = CredentialsMatchers.firstOrNull(
+					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+							Collections.<DomainRequirement>emptyList()),
+					CredentialsMatchers.withId(this.getCredentialID()));
+		}
+
 		if (credential != null)
 			credential.setConjurConfiguration(conjurConfiguration);
 

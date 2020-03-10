@@ -77,15 +77,19 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		return conjurConfiguration;
 	}
 
-	@DataBoundSetter
-	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-
+	private void logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		if (conjurConfiguration != null) {
 			LOGGER.log(Level.INFO, "Conjur configuration provided");
 			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
 			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
 			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
 		}
+	}
+
+	@DataBoundSetter
+	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+
+		logConjurConfiguration(conjurConfiguration);
 
 		this.conjurConfiguration = conjurConfiguration;
 		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
