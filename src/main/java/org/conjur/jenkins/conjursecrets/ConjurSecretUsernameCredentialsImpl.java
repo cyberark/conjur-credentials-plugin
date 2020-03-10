@@ -130,16 +130,15 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	@Override
 	public void setContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Set Context");
-		this.context = context;
+		if (context != null)
+			this.context = context;
 	}
 
 	private Secret secretFromCredentialWithConjurConfigAndContext(ConjurSecretCredentials credential) {
 
 		if (credential != null) {
-			if (conjurConfiguration != null)
-				credential.setConjurConfiguration(conjurConfiguration);
-			if (context != null)
-				credential.setContext(context);
+			credential.setConjurConfiguration(conjurConfiguration);
+			credential.setContext(context);
 			return credential.getSecret();
 			} else {
 			LOGGER.log(Level.INFO, "NOT FOUND!");

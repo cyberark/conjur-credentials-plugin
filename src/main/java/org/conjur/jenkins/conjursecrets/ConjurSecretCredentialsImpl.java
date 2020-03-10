@@ -122,7 +122,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	}
 
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-		this.conjurConfiguration = conjurConfiguration;
+		if (conjurConfiguration != null)
+			this.conjurConfiguration = conjurConfiguration;
 	}
 
 	public void setContext(Run<?, ?> context) {
