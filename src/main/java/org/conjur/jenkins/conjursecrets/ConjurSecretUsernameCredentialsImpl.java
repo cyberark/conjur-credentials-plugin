@@ -135,19 +135,17 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	private Secret secretFromCredentialWithConjurConfigAndContext(ConjurSecretCredentials credential) {
 
-		Secret secret = null;
-
 		if (credential != null) {
 			if (conjurConfiguration != null)
 				credential.setConjurConfiguration(conjurConfiguration);
 			if (context != null)
 				credential.setContext(context);
-			secret = credential.getSecret();
 		} else {
 			LOGGER.log(Level.INFO, "NOT FOUND!");
+			return null;
 		}
 
-		return secret;
+		return credential.getSecret();;
 
 	}
 	
