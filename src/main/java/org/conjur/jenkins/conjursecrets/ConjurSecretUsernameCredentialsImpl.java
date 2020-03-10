@@ -140,12 +140,12 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 				credential.setConjurConfiguration(conjurConfiguration);
 			if (context != null)
 				credential.setContext(context);
-		} else {
+			return credential.getSecret();
+			} else {
 			LOGGER.log(Level.INFO, "NOT FOUND!");
 			return null;
 		}
 
-		return credential.getSecret();;
 
 	}
 	
