@@ -78,7 +78,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
 
-		if (!(conjurJobConfig == null || conjurJobConfig.getInheritFromParent())) {
+		if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
 			// Taking the configuration from the Job
 			conjurConfig = conjurJobConfig.getConjurConfiguration();
 		} else {
