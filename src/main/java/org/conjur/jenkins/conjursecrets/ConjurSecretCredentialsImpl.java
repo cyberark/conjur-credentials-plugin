@@ -111,15 +111,6 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		return Secret.fromString(result);
 	}
 
-	public Secret secretWithConjurConfigAndContext(ConjurConfiguration conjurConfiguration, Run<?, ?> context) {
-
-		this.setConjurConfiguration(conjurConfiguration);
-		this.setContext(context);
-		return this.getSecret();
-
-	}
-
-
 	public String getVariablePath() {
 		return this.variablePath;
 	}

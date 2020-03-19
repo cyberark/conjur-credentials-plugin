@@ -132,35 +132,13 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	@Override
 	public Secret getSecret() {
-
-		LOGGER.log(Level.INFO, "* CredentialID: {0}", this.getCredentialID());
-		
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(this.getCredentialID()));
-		
-        if(credential == null) {
-            LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            if (context == null) {
-                throw new InvalidConjurSecretException("Unable to find credential at Global Instance Level and no current context to determine folder provided");
-            }
-            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
-    		credential = CredentialsMatchers.firstOrNull(
-    				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-    						Collections.<DomainRequirement>emptyList()),
-    				CredentialsMatchers.withId(this.getCredentialID()));
-		}
-		
-		if (credential == null) return null;
-
-		return credential.secretWithConjurConfigAndContext(conjurConfiguration, context);
+		return getPassword();
 	}
 
 	@Override
 	public Secret getPassword() {
 		LOGGER.log(Level.INFO, "Getting Password");
-		return getSecret();
+		return ConjurSecretCredentials.getSecretFromIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
 	}
 
 }
