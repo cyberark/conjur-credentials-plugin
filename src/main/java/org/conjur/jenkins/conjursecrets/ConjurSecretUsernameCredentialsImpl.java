@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.AncestorInPath;
@@ -77,19 +78,10 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		return conjurConfiguration;
 	}
 
-	private void logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-		if (conjurConfiguration != null) {
-			LOGGER.log(Level.INFO, "Conjur configuration provided");
-			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
-			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
-			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
-		}
-	}
-
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 
-		logConjurConfiguration(conjurConfiguration);
+		ConjurAPI.logConjurConfiguration(conjurConfiguration);
 
 		this.conjurConfiguration = conjurConfiguration;
 		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(

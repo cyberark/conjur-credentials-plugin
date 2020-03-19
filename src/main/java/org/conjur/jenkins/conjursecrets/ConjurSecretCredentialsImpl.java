@@ -61,15 +61,6 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		this.variablePath = variablePath;
 	}
 
-	private void logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
-		if (conjurConfiguration != null) {
-			LOGGER.log(Level.INFO, "Conjur configuration provided");
-			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
-			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
-			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	protected ConjurConfiguration getConfigurationFromContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
@@ -94,7 +85,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			}
 		}
 
-		logConjurConfiguration(conjurConfig);
+		ConjurAPI.logConjurConfiguration(conjurConfig);
 		return conjurConfig;
 	}
 
