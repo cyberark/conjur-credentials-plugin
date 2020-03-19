@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
@@ -22,6 +23,8 @@ import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+
+@NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
 public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		implements ConjurSecretUsernameCredentials {

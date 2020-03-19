@@ -1,12 +1,8 @@
 package org.conjur.jenkins.conjursecrets;
 
-import javax.annotation.Nonnull;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-
-import com.cloudbees.plugins.credentials.CredentialsNameProvider;
-import com.cloudbees.plugins.credentials.NameWith;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
 import hudson.model.Run;
 import hudson.util.Secret;
