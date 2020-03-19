@@ -1,35 +1,29 @@
 package org.conjur.jenkins.conjursecrets;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
+import com.cloudbees.plugins.credentials.CredentialsDescriptor;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
-import com.cloudbees.plugins.credentials.CredentialsDescriptor;
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import jenkins.model.Jenkins;
-
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
 implements ConjurSecretUsernameSSHKeyCredentials {
@@ -48,8 +42,9 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	transient Run<?, ?> context;
 
 	@DataBoundConstructor
-	public ConjurSecretUsernameSSHKeyCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
-			ConjurConfiguration conjurConfiguration, Secret passphrase, String description) {
+	public ConjurSecretUsernameSSHKeyCredentialsImpl(final CredentialsScope scope, final String id,
+			final String username, final String credentialID, final ConjurConfiguration conjurConfiguration,
+			final Secret passphrase, final String description) {
 		super(scope, id, username, description);
 		this.credentialID = credentialID;
 		this.passphrase = passphrase;
@@ -61,7 +56,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	}
 
 	@DataBoundSetter
-	public void setCredentialID(String credentialID) {
+	public void setCredentialID(final String credentialID) {
 		this.credentialID = credentialID;
 	}
 
@@ -70,25 +65,25 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	}
 
 	@DataBoundSetter
-	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+	public void setConjurConfiguration(final ConjurConfiguration conjurConfiguration) {
 
 		ConjurAPI.logConjurConfiguration(conjurConfiguration);
 
 		this.conjurConfiguration = conjurConfiguration;
 
-		ConjurSecretCredentials.setConjurConfigurationForCredentialWithID(this.getCredentialID(), conjurConfiguration, context);
+		ConjurSecretCredentials.setConjurConfigurationForCredentialWithID(this.getCredentialID(), conjurConfiguration,
+				context);
 
 	}
-	
-    public Secret getPassphrase() {
-        return passphrase;
-    }
-	
+
+	public Secret getPassphrase() {
+		return passphrase;
+	}
+
 	@DataBoundSetter
-	public void setPassphrase(Secret passphrase) {
+	public void setPassphrase(final Secret passphrase) {
 		this.passphrase = passphrase;
 	}
-
 
 	@Extension
 	public static class DescriptorImpl extends CredentialsDescriptor {
@@ -98,7 +93,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 			return "Conjur Secret Username SSHKey Credential";
 		}
 
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
+		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
 			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
 					URIRequirementBuilder.fromUri(uri).build());
 		}
@@ -111,7 +106,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	}
 
 	@Override
-	public void setContext(Run<?, ?> context) {
+	public void setContext(final Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Set Context");
 		if (context != null)
 			this.context = context;
@@ -120,13 +115,14 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	@Override
 	public String getPrivateKey() {
 		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
-		Secret secret = ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
+		final Secret secret = ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(
+				this.getCredentialID(), this.conjurConfiguration, this.context);
 		return secret.getPlainText();
 	}
 
 	@Override
 	public List<String> getPrivateKeys() {
-		List<String> result = new ArrayList<String>();
+		final List<String> result = new ArrayList<String>();
 		result.add(getPrivateKey());
 		return result;
 	}

@@ -1,13 +1,15 @@
 package org.conjur.jenkins.conjursecrets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.CheckForNull;
+
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
+import com.cloudbees.plugins.credentials.CredentialsDescriptor;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
@@ -17,11 +19,6 @@ import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-
-import com.cloudbees.hudson.plugins.folder.AbstractFolder;
-import com.cloudbees.plugins.credentials.CredentialsDescriptor;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
 import hudson.Extension;
 import hudson.model.Item;
