@@ -128,4 +128,9 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		this.variablePath = variablePath;
 	}
 
+	@Override
+	public String getNameTag() {
+		return "/*Conjur*";
+	}
+
 }

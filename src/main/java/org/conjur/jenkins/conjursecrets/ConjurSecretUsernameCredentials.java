@@ -11,9 +11,9 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import hudson.model.Run;
 import hudson.util.Secret;
 
-@NameWith(value = ConjurSecretUsernameCredentials.NameProvider.class, priority = 1)
+// @NameWith(value = ConjurSecretUsernameCredentials.NameProvider.class, priority = 1)
 
-public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswordCredentials {
+public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswordCredentials, ConjurSecretCredentials {
 
 	String getDisplayName();
 
@@ -22,13 +22,5 @@ public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswor
 	Secret getSecret();
 
 	void setConjurConfiguration(ConjurConfiguration conjurConfiguration);
-
-	class NameProvider extends CredentialsNameProvider<ConjurSecretUsernameCredentials> {
-		@Nonnull
-		@Override
-		public String getName(@Nonnull ConjurSecretUsernameCredentials c) {
-			return c.getDisplayName() + "/*ConjurSecretUsername*" + " (" + c.getDescription() + ")";
-		}
-	}
 
 }

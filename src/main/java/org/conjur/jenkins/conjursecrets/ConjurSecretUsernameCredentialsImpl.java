@@ -121,4 +121,9 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		return ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
 	}
 
+	@Override
+	public String getNameTag() {
+		return "/*ConjurSecretUsername*";
+	}
+
 }

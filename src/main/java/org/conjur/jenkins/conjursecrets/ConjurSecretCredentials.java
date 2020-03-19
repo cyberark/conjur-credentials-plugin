@@ -31,14 +31,15 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 	class NameProvider extends CredentialsNameProvider<ConjurSecretCredentials> {
 
 		@Override
-		public String getName(ConjurSecretCredentials conjurSecretCredential) {
-			String description = conjurSecretCredential.getDescription();
-			return conjurSecretCredential.getDisplayName() + "/*Conjur*" + " (" + description + ")";
+		public String getName(ConjurSecretCredentials c) {
+			return c.getDisplayName() + c.getNameTag() + " (" + c.getDescription() + ")";
 		}
 
 	}
 
 	String getDisplayName();
+
+	String getNameTag();
 
 	Secret getSecret();
 
@@ -82,8 +83,8 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 	}
 	
 	static Secret getSecretFromCredentialIDWithConfigAndContext(String credentialID, 
-													  ConjurConfiguration conjurConfiguration,
-													  Run<?, ?> context) {
+																ConjurConfiguration conjurConfiguration,
+																Run<?, ?> context) {
 
 		ConjurSecretCredentials credential = credentialWithID(credentialID, context);
 		
