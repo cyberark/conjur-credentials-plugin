@@ -75,22 +75,8 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 		ConjurAPI.logConjurConfiguration(conjurConfiguration);
 
 		this.conjurConfiguration = conjurConfiguration;
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(this.getCredentialID()));
 
-		if(credential == null && context != null) {
-            LOGGER.log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
-			credential = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(this.getCredentialID()));
-		}
-
-		if (credential != null)
-			credential.setConjurConfiguration(conjurConfiguration);
+		ConjurSecretCredentials.setConjurConfigurationForCredentialWithID(this.getCredentialID(), conjurConfiguration, context);
 
 	}
 	
@@ -134,7 +120,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	@Override
 	public String getPrivateKey() {
 		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
-		Secret secret = ConjurSecretCredentials.getSecretFromIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
+		Secret secret = ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
 		return secret.getPlainText();
 	}
 
