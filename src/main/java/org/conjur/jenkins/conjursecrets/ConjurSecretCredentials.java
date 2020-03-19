@@ -27,6 +27,8 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 	Secret getSecret();
 
+	Secret secretWithConjurConfigAndContext(ConjurConfiguration conjurConfiguration, Run<?, ?> context);
+
 	void setConjurConfiguration(ConjurConfiguration conjurConfiguration);
 
 	void setContext(Run<?, ?> context);

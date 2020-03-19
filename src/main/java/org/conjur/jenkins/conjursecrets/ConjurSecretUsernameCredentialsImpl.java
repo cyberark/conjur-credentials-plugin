@@ -130,19 +130,6 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 			this.context = context;
 	}
 
-	private Secret secretFromCredentialWithConjurConfigAndContext(ConjurSecretCredentials credential) {
-
-		if (credential != null) {
-			credential.setConjurConfiguration(conjurConfiguration);
-			credential.setContext(context);
-			return credential.getSecret();
-			} else {
-			LOGGER.log(Level.INFO, "NOT FOUND!");
-			return null;
-		}
-
-	}
-	
 	@Override
 	public Secret getSecret() {
 
@@ -163,9 +150,11 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
     				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
     						Collections.<DomainRequirement>emptyList()),
     				CredentialsMatchers.withId(this.getCredentialID()));
-        }
+		}
 		
-		return secretFromCredentialWithConjurConfigAndContext(credential);
+		if (credential == null) return null;
+
+		return credential.secretWithConjurConfigAndContext(conjurConfiguration, context);
 	}
 
 	@Override
