@@ -160,15 +160,14 @@ public class ConjurAPI {
 		return null;
 	}
 
-	private static String apiKeyForAuthentication(String prefix, ConjurJITJobProperty conjurJobConfig,
-			String buildNumber, String signature, String keyAlgorithm) {
+	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature, String keyAlgorithm) {
 		// Build the response Body
 		Map<String, String> body = new HashMap<String, String>();
 		body.put("buildNumber", buildNumber);
 		body.put("signature", signature);
 		body.put("keyAlgorithm", keyAlgorithm);
 		if (prefix != null && prefix.length() > 0) {
-			body.put("jobProperty_hostPrefix", conjurJobConfig.getHostPrefix());
+			body.put("jobProperty_hostPrefix", prefix);
 		}
 
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -193,9 +192,8 @@ public class ConjurAPI {
 			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
 			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
+			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();	
 			conjurAuthn.apiKey = apiKeyForAuthentication(prefix,
-														 conjurJobConfig,
 														 String.valueOf(buildNumber), 
 														 signatureForRequest(jobName + "-" + buildNumber, privateKey),
 														 privateKey.getAlgorithm());
