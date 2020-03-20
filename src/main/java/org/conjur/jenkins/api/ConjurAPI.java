@@ -143,6 +143,23 @@ public class ConjurAPI {
 		return conjurAuthn;
 	}
 
+
+	private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
+		// sign using the private key
+		LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+			sig.initSign(privateKey);
+			sig.update(challenge.getBytes());
+			String signatureString = Base64.getEncoder().encodeToString(sig.sign());
+			LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
+			return signatureString;
+		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	private static void setConjurAuthnForJITCredentialAccess(Run<?, ?> context, ConjurAuthnInfo conjurAuthn) {
 
 		String jobName = context.getParent().getFullName();
@@ -152,28 +169,14 @@ public class ConjurAPI {
 		if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
 			String prefix = conjurJobConfig.getHostPrefix();
 			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
-			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
 			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
-			// sign using the private key
-			String challenge = jobName + "-" + buildNumber;
-			LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
-			String signatureString = null;
-			try {
-				Signature sig = Signature.getInstance("SHA256withRSA");
-				sig.initSign(privateKey);
-				sig.update(challenge.getBytes());
-				signatureString = Base64.getEncoder().encodeToString(sig.sign());
-				LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
-			} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			// Build the response Body
+			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
+			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
+				// Build the response Body
 			Map<String, String> body = new HashMap<String, String>();
 			body.put("buildNumber", String.valueOf(buildNumber));
-			body.put("signature", signatureString);
+			body.put("signature", signatureForRequest(jobName + "-" + buildNumber, privateKey));
 			body.put("keyAlgorithm", privateKey.getAlgorithm());
 			if (prefix != null && prefix.length() > 0) {
 				body.put("jobProperty_hostPrefix", conjurJobConfig.getHostPrefix());
