@@ -58,7 +58,6 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		this.variablePath = variablePath;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected ConjurConfiguration getConfigurationFromContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
 		Item job = context.getParent();
@@ -70,20 +69,26 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			// Taking the configuration from the Job
 			conjurConfig = conjurJobConfig.getConjurConfiguration();
 		} else {
-			for (ItemGroup<? extends Item> g = job
-					.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
-				FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
-						.get(FolderConjurConfiguration.class);
-				if (!(fconf == null || fconf.getInheritFromParent())) {
-					// take the folder Conjur Configuration
-					conjurConfig = fconf.getConjurConfiguration();
-					break;
-				}
-			}
+			ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(job);
+			if (inheritedConfig != null) conjurConfig = inheritedConfig;
 		}
 
 		ConjurAPI.logConjurConfiguration(conjurConfig);
 		return conjurConfig;
+	}
+
+	@SuppressWarnings("unchecked")
+	private ConjurConfiguration inheritedConjurConfiguration(Item job) {
+		for (ItemGroup<? extends Item> g = job
+		.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
+			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
+					.get(FolderConjurConfiguration.class);
+			if (!(fconf == null || fconf.getInheritFromParent())) {
+				// take the folder Conjur Configuration
+				return fconf.getConjurConfiguration();
+			}
+		}
+		return null;
 	}
 
 	@Override
