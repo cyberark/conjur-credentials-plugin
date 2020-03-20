@@ -160,6 +160,27 @@ public class ConjurAPI {
 		return null;
 	}
 
+	private static String apiKeyForAuthentication(String prefix, ConjurJITJobProperty conjurJobConfig,
+			String buildNumber, String signature, String keyAlgorithm) {
+		// Build the response Body
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("buildNumber", buildNumber);
+		body.put("signature", signature);
+		body.put("keyAlgorithm", keyAlgorithm);
+		if (prefix != null && prefix.length() > 0) {
+			body.put("jobProperty_hostPrefix", conjurJobConfig.getHostPrefix());
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			return objectMapper.writeValueAsString(body);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	private static void setConjurAuthnForJITCredentialAccess(Run<?, ?> context, ConjurAuthnInfo conjurAuthn) {
 
 		String jobName = context.getParent().getFullName();
@@ -173,25 +194,11 @@ public class ConjurAPI {
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
 			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
 			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
-				// Build the response Body
-			Map<String, String> body = new HashMap<String, String>();
-			body.put("buildNumber", String.valueOf(buildNumber));
-			body.put("signature", signatureForRequest(jobName + "-" + buildNumber, privateKey));
-			body.put("keyAlgorithm", privateKey.getAlgorithm());
-			if (prefix != null && prefix.length() > 0) {
-				body.put("jobProperty_hostPrefix", conjurJobConfig.getHostPrefix());
-			}
-
-			ObjectMapper objectMapper = new ObjectMapper();
-
-			try {
-				String jsonResp = objectMapper.writeValueAsString(body);
-				conjurAuthn.apiKey = jsonResp;
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
+			conjurAuthn.apiKey = apiKeyForAuthentication(prefix,
+														 conjurJobConfig,
+														 String.valueOf(buildNumber), 
+														 signatureForRequest(jobName + "-" + buildNumber, privateKey),
+														 privateKey.getAlgorithm());
 			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
 		}
 	}
