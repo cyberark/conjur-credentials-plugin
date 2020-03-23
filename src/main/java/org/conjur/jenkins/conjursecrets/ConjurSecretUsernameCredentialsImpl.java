@@ -87,18 +87,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	}
 	
 	@Extension
-	public static class DescriptorImpl extends CredentialsDescriptor {
-
-		@Override
-		public String getDisplayName() {
-			return "Conjur Secret Username Credential";
-		}
-
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
-			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
-					URIRequirementBuilder.fromUri(uri).build());
-		}
-
+	public class DescriptorImpl extends ConjurSecretCredentialsDescriptor {
 	}
 
 	@Override
