@@ -3,25 +3,17 @@ package org.conjur.jenkins.conjursecrets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.NameWith;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
-import hudson.model.Item;
 import hudson.model.Run;
-import hudson.security.ACL;
-import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
@@ -87,18 +79,8 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	}
 	
 	@Extension
-	public static class DescriptorImpl extends CredentialsDescriptor {
-
-		@Override
-		public String getDisplayName() {
-			return "Conjur Secret Username Credential";
-		}
-
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
-			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
-					URIRequirementBuilder.fromUri(uri).build());
-		}
-
+	public static class DescriptorImpl extends ConjurSecretCredentialsDescriptor {
+		
 	}
 
 	public static String getDescriptorDisplayName() {

@@ -15,7 +15,7 @@ import hudson.util.ListBoxModel;
 public class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
 
     public String getDescriptorDisplayName() {
-        return "Conjur Secret Username SSHKey Credential";
+        return "Conjur Secret Credential XXXX";
     }
 
 	@Extension
