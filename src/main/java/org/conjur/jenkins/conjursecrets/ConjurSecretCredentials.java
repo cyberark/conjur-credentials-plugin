@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 
 import hudson.model.Item;
 import hudson.model.Run;
@@ -70,6 +71,13 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 							Collections.<DomainRequirement>emptyList()),
 					CredentialsMatchers.withId(credentialID));
 		}
+
+		if (credential == null) {
+			String contextLevel = String.format("Unable to find credential at %s", 
+												(context != null? context.getDisplayName() : "Global Instance Level"));
+			throw new InvalidConjurSecretException(contextLevel);
+		}
+
 		return credential;
 	}
 
@@ -89,11 +97,6 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 		getLogger().log(Level.INFO, "Getting Secret with CredentialID: {0}", credentialID);
 		ConjurSecretCredentials credential = credentialWithID(credentialID, context);
 		
-		if (credential == null) {
-			getLogger().log(Level.INFO, "Credential is null");
-			return null;
-		}
-
 		return credential.secretWithConjurConfigAndContext(conjurConfiguration, context);
 	}
 
