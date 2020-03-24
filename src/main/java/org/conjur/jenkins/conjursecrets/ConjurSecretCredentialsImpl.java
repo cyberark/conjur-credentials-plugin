@@ -63,7 +63,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
 
 		if (context == null) {
-			return ConjurAPI.logConjurConfiguration(conjurConfig);;
+			return ConjurAPI.logConjurConfiguration(conjurConfig);
 		}
 
 		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
