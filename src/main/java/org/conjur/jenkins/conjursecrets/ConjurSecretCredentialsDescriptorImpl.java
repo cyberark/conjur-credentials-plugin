@@ -13,6 +13,7 @@ import hudson.util.ListBoxModel;
 
 //@Extension
 public class ConjurSecretCredentialsDescriptorImpl extends CredentialsDescriptor {
+	
 	@Override
 	public String getDisplayName() {
 		return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
