@@ -267,13 +267,14 @@ public class ConjurAPI {
 		return result;
 	}
 
-	public static void logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+	public static ConjurConfiguration logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		if (conjurConfiguration != null) {
 			LOGGER.log(Level.INFO, "Conjur configuration provided");
 			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
 			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
 			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
 		}
+		return conjurConfiguration;
 	}
 
 	private static void initializeWithCredential(ConjurAuthnInfo conjurAuthn, String credentialID,
