@@ -80,7 +80,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	}
 	
 	@Extension
-	public final static Class<ConjurSecretCredentialsDescriptorImpl> DescriptorImpl = ConjurSecretCredentialsDescriptorImpl.class;
+	public final static Class<? extends CredentialsDescriptor> DescriptorImpl = ConjurSecretCredentialsDescriptorImpl.class;
 
 	public static String getDescriptorDisplayName() {
 		return "Conjur Secret Username Credential***********";
