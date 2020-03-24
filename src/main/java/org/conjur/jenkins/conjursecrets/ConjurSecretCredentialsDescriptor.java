@@ -7,18 +7,17 @@ import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 
-import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 
-public class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
+public abstract class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
 
     public String getDescriptorDisplayName() {
         return "Conjur Secret Credential XXXX";
     }
 
-	@Extension
+	// @Extension
 	public static class DescriptorImpl extends ConjurSecretCredentialsDescriptor {
 
 		@Override
