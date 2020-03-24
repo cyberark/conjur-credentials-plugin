@@ -7,12 +7,11 @@ import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 
-import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 
-@Extension
+//@Extension
 public class ConjurSecretCredentialsDescriptorImpl extends CredentialsDescriptor {
 	@Override
 	public String getDisplayName() {
