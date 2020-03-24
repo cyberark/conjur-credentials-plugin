@@ -4,12 +4,6 @@
 		<f:entry title="Inherit from parent?" description="If checked, All values will be inherited from parent (either parent folder or Global configuration.)">
 	    	<f:checkbox name="inheritFromParent" field="inheritFromParent" default="true" checked="${inheritFromParent}"/>
 	  	</f:entry>
-        <f:entry title="${%Auth WebService ID}">
-            <f:textbox field="authWebServiceId" name="authWebServiceId"/>
-        </f:entry>
-        <f:entry title="${%Host Authentication Prefix}">
-            <f:textbox field="hostPrefix" name="hostPrefix"/>
-        </f:entry>
         <f:property field="conjurConfiguration" header="${%Conjur Configuration}"/>
     </f:section>
     <tr>
