@@ -12,8 +12,8 @@ import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 
 //@Extension
-public class ConjurSecretCredentialsDescriptorImpl extends CredentialsDescriptor {
-	
+public class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
+
 	@Override
 	public String getDisplayName() {
 		return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
