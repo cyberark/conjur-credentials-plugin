@@ -16,7 +16,7 @@ public class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
 
 	@Override
 	public String getDisplayName() {
-		return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
+		return "Generic Conjur Secret Credential";
 	}
 
 	public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {

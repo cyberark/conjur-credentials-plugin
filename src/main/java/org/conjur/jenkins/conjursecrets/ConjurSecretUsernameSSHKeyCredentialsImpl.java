@@ -93,11 +93,6 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 			return ConjurSecretUsernameSSHKeyCredentialsImpl.getDescriptorDisplayName();
 		}
 
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
-			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
-					URIRequirementBuilder.fromUri(uri).build());
-		}
-
 	}
 
 	public static String getDescriptorDisplayName() {
