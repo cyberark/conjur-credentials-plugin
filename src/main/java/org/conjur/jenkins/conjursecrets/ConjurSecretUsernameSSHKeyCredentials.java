@@ -22,7 +22,7 @@ public interface ConjurSecretUsernameSSHKeyCredentials extends SSHUserPrivateKey
 
 	void setConjurConfiguration(ConjurConfiguration conjurConfiguration);
 
-	class NameProvider extends CredentialsNameProvider<ConjurSecretUsernameSSHKeyCredentials> {
+	public static class NameProvider extends CredentialsNameProvider<ConjurSecretUsernameSSHKeyCredentials> {
 		@Nonnull
 		@Override
 		public String getName(@Nonnull ConjurSecretUsernameSSHKeyCredentials c) {

@@ -8,21 +8,14 @@ import java.util.logging.Logger;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
-import hudson.model.Item;
 import hudson.model.Run;
-import hudson.security.ACL;
-import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
