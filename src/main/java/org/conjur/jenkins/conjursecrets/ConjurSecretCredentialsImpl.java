@@ -60,8 +60,12 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	protected ConjurConfiguration getConfigurationFromContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
-		Item job = context.getParent();
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
+
+		if (context == null) {
+			ConjurAPI.logConjurConfiguration(conjurConfig);
+			return conjurConfig;
+		}
 
 		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
 
@@ -69,12 +73,13 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			// Taking the configuration from the Job
 			conjurConfig = conjurJobConfig.getConjurConfiguration();
 		} else {
-			ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(job);
+			ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(context.getParent());
 			if (inheritedConfig != null) conjurConfig = inheritedConfig;
-		}
+		}	
 
 		ConjurAPI.logConjurConfiguration(conjurConfig);
 		return conjurConfig;
+
 	}
 
 	@SuppressWarnings("unchecked")
