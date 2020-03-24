@@ -90,7 +90,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 
 		@Override
 		public String getDisplayName() {
-			return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
+			return ConjurSecretUsernameSSHKeyCredentialsImpl.getDescriptorDisplayName();
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {

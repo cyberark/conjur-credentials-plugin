@@ -90,7 +90,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	public static class DescriptorImpl extends CredentialsDescriptor {
 		@Override
 		public String getDisplayName() {
-            return "Conjur Secret Credential XXXX";
+			return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
