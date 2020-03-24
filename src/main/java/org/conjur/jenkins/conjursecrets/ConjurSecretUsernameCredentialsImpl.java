@@ -87,7 +87,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	}
 	
 	@Extension
-	public class DescriptorImpl extends CredentialsDescriptor {
+	public static class DescriptorImpl extends CredentialsDescriptor {
 
 		@Override
 		public String getDisplayName() {
