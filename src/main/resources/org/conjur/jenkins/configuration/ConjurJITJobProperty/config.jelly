@@ -4,9 +4,6 @@
 		<f:entry title="Inherit from parent?" description="If checked, All values will be inherited from parent (either parent folder or Global configuration.)">
 	    	<f:checkbox name="inheritFromParent" field="inheritFromParent" default="true" checked="${inheritFromParent}"/>
 	  	</f:entry>
-		<f:entry title="Use Just-In-Time --JIT-- Secret Access" description="If checked, The Job identity will be used to authenticate to Conjur during execution of the job. You don't need to select a Conjur Auth Credential ">
-	    	<f:checkbox name="useJustInTime" field="useJustInTime" default="false" checked="${useJustInTime}"/>
-	  	</f:entry>
         <f:entry title="${%Auth WebService ID}">
             <f:textbox field="authWebServiceId" name="authWebServiceId"/>
         </f:entry>

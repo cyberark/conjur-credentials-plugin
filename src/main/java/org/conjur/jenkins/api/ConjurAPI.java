@@ -182,12 +182,12 @@ public class ConjurAPI {
 
 	private static void setConjurAuthnForJITCredentialAccess(Run<?, ?> context, ConjurAuthnInfo conjurAuthn) {
 
-		String jobName = context.getParent().getFullName();
-		int buildNumber = context.getNumber();
-		LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
 		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
 		if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
-			String prefix = conjurJobConfig.getHostPrefix();
+			String jobName = context.getParent().getFullName();
+			int buildNumber = context.getNumber();
+			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
+				String prefix = conjurJobConfig.getHostPrefix();
 			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
 			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
