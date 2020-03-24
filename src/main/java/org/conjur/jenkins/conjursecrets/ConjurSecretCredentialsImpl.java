@@ -78,7 +78,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			return ConjurAPI.logConjurConfiguration(inheritedConfig);
 		}
 
-		return null;
+		return ConjurAPI.logConjurConfiguration(conjurConfig);
 
 	}
 
