@@ -90,7 +90,7 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 
 		@Override
 		public String getDisplayName() {
-			return "Conjur Secret Username SSHKey Credential";
+			return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
@@ -98,6 +98,10 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 					URIRequirementBuilder.fromUri(uri).build());
 		}
 
+	}
+
+	public static String getDescriptorDisplayName() {
+		return "Conjur Secret Username SSHKey Credential";
 	}
 
 	@Override
