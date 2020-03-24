@@ -62,20 +62,18 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		LOGGER.log(Level.INFO, "Getting Configuration from Context");
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
 
-		if (context == null) {
-			ConjurAPI.logConjurConfiguration(conjurConfig);
-			return conjurConfig;
+		if (context != null) {
+			ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
+
+			if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
+				// Taking the configuration from the Job
+				conjurConfig = conjurJobConfig.getConjurConfiguration();
+			} else {
+				ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(context.getParent());
+				if (inheritedConfig != null) conjurConfig = inheritedConfig;
+			}	
+	
 		}
-
-		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
-
-		if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
-			// Taking the configuration from the Job
-			conjurConfig = conjurJobConfig.getConjurConfiguration();
-		} else {
-			ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(context.getParent());
-			if (inheritedConfig != null) conjurConfig = inheritedConfig;
-		}	
 
 		ConjurAPI.logConjurConfiguration(conjurConfig);
 		return conjurConfig;
