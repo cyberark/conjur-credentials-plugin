@@ -1,6 +1,7 @@
 package org.conjur.jenkins.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -89,8 +90,8 @@ public class ConjurAPI {
 		if (conjurAuthn.login != null && conjurAuthn.apiKey != null) {
 			LOGGER.log(Level.INFO, "Authenticating with Conjur");
 			Request request = new Request.Builder()
-					.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath, conjurAuthn.account,
-							URLEncoder.encode(conjurAuthn.login, "utf-8")))
+					.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
+							conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
 					.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 
 			Response response = client.newCall(request).execute();
@@ -143,18 +144,19 @@ public class ConjurAPI {
 		return conjurAuthn;
 	}
 
-
 	private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
 		// sign using the private key
 		LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
 		try {
 			Signature sig = Signature.getInstance("SHA256withRSA");
 			sig.initSign(privateKey);
-			sig.update(challenge.getBytes());
+			sig.update(challenge.getBytes("UTF8"));
 			String signatureString = Base64.getEncoder().encodeToString(sig.sign());
 			LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
 			return signatureString;
 		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		return null;
