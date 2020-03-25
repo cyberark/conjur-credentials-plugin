@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <groupId>io.jenkins.plugins</groupId>
-    <artifactId>Conjur</artifactId>
+    <artifactId>conjur-credentials</artifactId>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.32.1</jenkins.version>
@@ -16,7 +16,7 @@
     </properties>
     <name>Conjur Secrets Plugin</name>
     <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
-    <version>0.8</version>
+    <version>1.0</version>
     <url>https://www.conjur.org</url>
     
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
@@ -74,6 +74,12 @@
 		    <artifactId>credentials-binding</artifactId>
 		    <version>1.16</version>
 		</dependency>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.modules/instance-identity -->
+        <dependency>
+            <groupId>org.jenkins-ci.modules</groupId>
+            <artifactId>instance-identity</artifactId>
+            <version>2.1</version>
+        </dependency>
 		<!--  UNIREST -->
 		<dependency>
 		    <groupId>io.github.openunirest</groupId>
@@ -86,5 +92,12 @@
 		    <artifactId>okhttp</artifactId>
 		    <version>3.11.0</version>
 		</dependency>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.7.9.6</version>
+        </dependency>
+
     </dependencies>
 </project>

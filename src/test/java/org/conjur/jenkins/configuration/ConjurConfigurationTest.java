@@ -36,6 +36,7 @@ public class ConjurConfigurationTest {
 
 		CredentialsStore store = CredentialsProvider.lookupStores(j.jenkins).iterator().next();
 
+		/*
 		// Setup Conjur SSL Certificate
 		try {
 			byte[] keyStoreBytes = FileUtils.readFileToByteArray(new File("c:\\conjur.p12"));
@@ -48,6 +49,7 @@ public class ConjurConfigurationTest {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		*/
 
 		// Setup Conjur login credentials
 		UsernamePasswordCredentialsImpl conjurCredentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL,
@@ -83,6 +85,7 @@ public class ConjurConfigurationTest {
 			throw new RuntimeException(e);
 		}
 
+		/*
 		FreeStyleProject project;
 		try {
 			project = j.createFreeStyleProject();
@@ -103,6 +106,7 @@ public class ConjurConfigurationTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
 
 	}
 

@@ -1,54 +1,40 @@
 package org.conjur.jenkins.conjursecrets;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.NameWith;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+
+import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
 
-import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
-import com.cloudbees.plugins.credentials.CredentialsDescriptor;
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import hudson.Extension;
-import hudson.model.Item;
 import hudson.model.Run;
-import hudson.security.ACL;
-import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import jenkins.model.Jenkins;
 
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+@NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
 public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
-		implements ConjurSecretUsernameCredentials, SSHUserPrivateKey {
+		implements ConjurSecretUsernameCredentials {
 
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameCredentialsImpl.class.getName());
 
 	private String username;
 	private String credentialID;
 	private ConjurConfiguration conjurConfiguration;
-	private Secret passphrase;
 
 	transient Run<?, ?> context;
 
 	@DataBoundConstructor
 	public ConjurSecretUsernameCredentialsImpl(CredentialsScope scope, String id, String username, String credentialID,
-			ConjurConfiguration conjurConfiguration, Secret passphrase, String description) {
+			ConjurConfiguration conjurConfiguration, String description) {
 		super(scope, id, description);
 		this.username = username;
 		this.credentialID = credentialID;
-		this.passphrase = passphrase;
 		this.conjurConfiguration = conjurConfiguration;
 	}
 
@@ -83,40 +69,27 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+
+		ConjurAPI.logConjurConfiguration(conjurConfiguration);
+
 		this.conjurConfiguration = conjurConfiguration;
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(this.getCredentialID()));
-		if (credential != null)
-			credential.setConjurConfiguration(conjurConfiguration);
+
+		ConjurSecretCredentials.setConjurConfigurationForCredentialWithID(this.getCredentialID(), conjurConfiguration, context);
 
 	}
-	
-	@Override
-    public Secret getPassphrase() {
-        return passphrase;
-    }
-	
-	@DataBoundSetter
-	public void setPassphrase(Secret passphrase) {
-		this.passphrase = passphrase;
-	}
-
 
 	@Extension
-	public static class DescriptorImpl extends CredentialsDescriptor {
+	public static class DescriptorImpl extends ConjurSecretCredentialsDescriptor {
 
 		@Override
 		public String getDisplayName() {
-			return "Conjur Secret Username Credential";
+			return ConjurSecretUsernameCredentialsImpl.getDescriptorDisplayName();
 		}
 
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
-			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
-					URIRequirementBuilder.fromUri(uri).build());
-		}
+	}
 
+	public static String getDescriptorDisplayName() {
+		return "Conjur Secret Username Credential";
 	}
 
 	@Override
@@ -127,47 +100,24 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 	@Override
 	public void setContext(Run<?, ?> context) {
 		LOGGER.log(Level.INFO, "Set Context");
-		this.context = context;
+		if (context != null)
+			this.context = context;
 	}
 
 	@Override
 	public Secret getSecret() {
-
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(this.getCredentialID()));
-
-		Secret secret = null;
-
-		if (credential != null) {
-			if (conjurConfiguration != null)
-				credential.setConjurConfiguration(conjurConfiguration);
-			if (context != null)
-				credential.setContext(context);
-			secret = credential.getSecret();
-		}
-
-		return secret;
+		return getPassword();
 	}
 
 	@Override
 	public Secret getPassword() {
 		LOGGER.log(Level.INFO, "Getting Password");
-		return getSecret();
+		return ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(this.getCredentialID(), this.conjurConfiguration, this.context);
 	}
 
 	@Override
-	public String getPrivateKey() {
-		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
-		return getSecret().getPlainText();
-	}
-
-	@Override
-	public List<String> getPrivateKeys() {
-		List<String> result = new ArrayList<String>();
-		result.add(getPrivateKey());
-		return result;
+	public String getNameTag() {
+		return "/*ConjurSecretUsername*";
 	}
 
 }

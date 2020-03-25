@@ -1,12 +1,19 @@
 package org.conjur.jenkins.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,13 +26,17 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.CertificateCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import hudson.model.Run;
 import hudson.security.ACL;
@@ -40,6 +51,7 @@ public class ConjurAPI {
 
 	private static class ConjurAuthnInfo {
 		String applianceUrl;
+		String authnPath;
 		String account;
 		String login;
 		String apiKey;
@@ -73,13 +85,13 @@ public class ConjurAPI {
 					context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
 		}
 
-		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, availableCredentials);
+		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, availableCredentials, context);
 
 		if (conjurAuthn.login != null && conjurAuthn.apiKey != null) {
 			LOGGER.log(Level.INFO, "Authenticating with Conjur");
 			Request request = new Request.Builder()
-					.url(String.format("%s/authn/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.account,
-							URLEncoder.encode(conjurAuthn.login, "utf-8")))
+					.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
+							conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
 					.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 
 			Response response = client.newCall(request).execute();
@@ -99,7 +111,7 @@ public class ConjurAPI {
 	}
 
 	private static ConjurAuthnInfo getConjurAuthnInfo(ConjurConfiguration configuration,
-			List<UsernamePasswordCredentials> availableCredentials) {
+			List<UsernamePasswordCredentials> availableCredentials, Run<?, ?> context) {
 		// Conjur variables
 		ConjurAuthnInfo conjurAuthn = new ConjurAuthnInfo();
 
@@ -117,12 +129,78 @@ public class ConjurAPI {
 			if (account != null && !account.isEmpty()) {
 				conjurAuthn.account = account;
 			}
+			// Default authentication will be authn
+			conjurAuthn.authnPath = "authn";
 		}
 
 		// Default to Environment variables if not values present
 		defaultToEnvironment(conjurAuthn);
 
+		// Check for Just-In-time Credential Access
+		if (context != null) {
+			setConjurAuthnForJITCredentialAccess(context, conjurAuthn);
+		}
+
 		return conjurAuthn;
+	}
+
+	private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
+		// sign using the private key
+		LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
+		try {
+			Signature sig = Signature.getInstance("SHA256withRSA");
+			sig.initSign(privateKey);
+			sig.update(challenge.getBytes("UTF8"));
+			String signatureString = Base64.getEncoder().encodeToString(sig.sign());
+			LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
+			return signatureString;
+		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature, String keyAlgorithm) {
+		// Build the response Body
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("buildNumber", buildNumber);
+		body.put("signature", signature);
+		body.put("keyAlgorithm", keyAlgorithm);
+		if (prefix != null && prefix.length() > 0) {
+			body.put("jobProperty_hostPrefix", prefix);
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			return objectMapper.writeValueAsString(body);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static void setConjurAuthnForJITCredentialAccess(Run<?, ?> context, ConjurAuthnInfo conjurAuthn) {
+
+		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
+		if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
+			String jobName = context.getParent().getFullName();
+			int buildNumber = context.getNumber();
+			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
+				String prefix = conjurJobConfig.getHostPrefix();
+			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
+			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
+			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
+			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
+			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();	
+			conjurAuthn.apiKey = apiKeyForAuthentication(prefix,
+														 String.valueOf(buildNumber), 
+														 signatureForRequest(jobName + "-" + buildNumber, privateKey),
+														 privateKey.getAlgorithm());
+			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
+		}
 	}
 
 	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
@@ -133,7 +211,7 @@ public class ConjurAPI {
 				CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
 						Collections.<DomainRequirement>emptyList()),
 				CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
-
+		
 		if (certificate != null) {
 			try {
 
@@ -172,7 +250,7 @@ public class ConjurAPI {
 			String variablePath) throws IOException {
 		String result = null;
 
-		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, null);
+		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, null, null);
 
 		LOGGER.log(Level.INFO, "Fetching secret from Conjur");
 		Request request = new Request.Builder().url(
@@ -189,6 +267,16 @@ public class ConjurAPI {
 		}
 
 		return result;
+	}
+
+	public static ConjurConfiguration logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
+		if (conjurConfiguration != null) {
+			LOGGER.log(Level.INFO, "Conjur configuration provided");
+			LOGGER.log(Level.INFO, "Conjur Appliance Url: " + conjurConfiguration.getApplianceURL());
+			LOGGER.log(Level.INFO, "Conjur Account: " + conjurConfiguration.getAccount());
+			LOGGER.log(Level.INFO, "Conjur credential ID: " + conjurConfiguration.getCredentialID());
+		}
+		return conjurConfiguration;
 	}
 
 	private static void initializeWithCredential(ConjurAuthnInfo conjurAuthn, String credentialID,
