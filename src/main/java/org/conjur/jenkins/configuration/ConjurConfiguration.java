@@ -8,7 +8,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
@@ -20,20 +22,39 @@ import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 
 public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfiguration> implements Serializable {
 
+	
+
 	@Extension
 	public static class DescriptorImpl extends Descriptor<ConjurConfiguration> {
-		public ListBoxModel doFillCertificateCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
-			return new StandardListBoxModel().includeEmptyValue().includeAs(ACL.SYSTEM, item,
-					StandardCertificateCredentials.class, URIRequirementBuilder.fromUri(uri).build());
+		public ListBoxModel doFillCertificateCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardCertificateCredentials.class);
 		}
 
-		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String uri) {
-			return new StandardListBoxModel().includeEmptyValue().includeAs(ACL.SYSTEM, item,
-					StandardUsernamePasswordCredentials.class, URIRequirementBuilder.fromUri(uri).build());
+		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardUsernamePasswordCredentials.class);
 		}
+
+		private static ListBoxModel doFillCredentialIDItemsWithClass(@AncestorInPath Item item, @QueryParameter String credentialsId, Class<? extends StandardCredentials> credentialClass) {
+			StandardListBoxModel result = new StandardListBoxModel();
+			if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+				return result.includeCurrentValue(credentialsId);
+			} 
+
+			if (item != null
+				&& !item.hasPermission(Item.EXTENDED_READ)
+				&& !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+			return result.includeCurrentValue(credentialsId);
+			}
+
+			return result
+				.includeEmptyValue()
+				.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
+				.includeCurrentValue(credentialsId);
+		} 
 
 		@Override
 		public String getDisplayName() {

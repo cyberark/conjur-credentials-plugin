@@ -12,3 +12,4 @@ target/
 .vscode/tasks.json
 .factorypath
 .DS_Store
+.factorypath
