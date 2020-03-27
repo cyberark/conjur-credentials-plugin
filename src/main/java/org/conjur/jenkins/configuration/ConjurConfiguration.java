@@ -40,16 +40,16 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 
 		private static ListBoxModel doFillCredentialIDItemsWithClass(@AncestorInPath Item item, @QueryParameter String credentialsId, Class<? extends StandardCredentials> credentialClass) {
 			StandardListBoxModel result = new StandardListBoxModel();
-			if (item == null) {
-			  if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+			if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
 				return result.includeCurrentValue(credentialsId);
-			  }
-			} else {
-			  if (!item.hasPermission(Item.EXTENDED_READ)
-				  && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-				return result.includeCurrentValue(credentialsId);
-			  }
+			} 
+
+			if (item != null
+				&& !item.hasPermission(Item.EXTENDED_READ)
+				&& !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+			return result.includeCurrentValue(credentialsId);
 			}
+
 			return result
 				.includeEmptyValue()
 				.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
