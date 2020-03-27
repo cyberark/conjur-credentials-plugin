@@ -10,6 +10,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
@@ -25,30 +26,22 @@ import jenkins.model.Jenkins;
 
 public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfiguration> implements Serializable {
 
+	
+
 	@Extension
 	public static class DescriptorImpl extends Descriptor<ConjurConfiguration> {
 		public ListBoxModel doFillCertificateCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
-			StandardListBoxModel result = new StandardListBoxModel();
-			if (item == null) {
-			  if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-				return result.includeCurrentValue(credentialsId); // (2)
-			  }
-			} else {
-			  if (!item.hasPermission(Item.EXTENDED_READ)
-				  && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-				return result.includeCurrentValue(credentialsId); // (2)
-			  }
-			}			
-			return result
-				.includeEmptyValue()
-				.includeAs(ACL.SYSTEM, item, StandardCertificateCredentials.class, URIRequirementBuilder.fromUri(credentialsId).build())
-				.includeCurrentValue(credentialsId);
+			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardCertificateCredentials.class);
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardUsernamePasswordCredentials.class);
+		}
+
+		private static ListBoxModel doFillCredentialIDItemsWithClass(@AncestorInPath Item item, @QueryParameter String credentialsId, Class<? extends StandardCredentials> credentialClass) {
 			StandardListBoxModel result = new StandardListBoxModel();
 			if (item == null) {
-			  if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+			  if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
 				return result.includeCurrentValue(credentialsId);
 			  }
 			} else {
@@ -59,9 +52,9 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 			}
 			return result
 				.includeEmptyValue()
-				.includeAs(ACL.SYSTEM, item, StandardUsernamePasswordCredentials.class, URIRequirementBuilder.fromUri(credentialsId).build())
+				.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
 				.includeCurrentValue(credentialsId);
-		}
+		} 
 
 		@Override
 		public String getDisplayName() {
