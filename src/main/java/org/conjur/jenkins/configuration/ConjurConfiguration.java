@@ -31,30 +31,12 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	@Extension
 	public static class DescriptorImpl extends Descriptor<ConjurConfiguration> {
 		public ListBoxModel doFillCertificateCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
-			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardCertificateCredentials.class);
+			return fillCredentialIDItemsWithClass(item, credentialsId, StandardCertificateCredentials.class);
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
-			return doFillCredentialIDItemsWithClass(item, credentialsId, StandardUsernamePasswordCredentials.class);
+			return fillCredentialIDItemsWithClass(item, credentialsId, StandardUsernamePasswordCredentials.class);
 		}
-
-		private static ListBoxModel doFillCredentialIDItemsWithClass(@AncestorInPath Item item, @QueryParameter String credentialsId, Class<? extends StandardCredentials> credentialClass) {
-			StandardListBoxModel result = new StandardListBoxModel();
-			if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-				return result.includeCurrentValue(credentialsId);
-			} 
-
-			if (item != null
-				&& !item.hasPermission(Item.EXTENDED_READ)
-				&& !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-			return result.includeCurrentValue(credentialsId);
-			}
-
-			return result
-				.includeEmptyValue()
-				.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
-				.includeCurrentValue(credentialsId);
-		} 
 
 		@Override
 		public String getDisplayName() {
@@ -144,5 +126,23 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	public void setCredentialID(String credentialID) {
 		this.credentialID = credentialID;
 	}
+
+	private static ListBoxModel fillCredentialIDItemsWithClass(Item item, String credentialsId, Class<? extends StandardCredentials> credentialClass) {
+		StandardListBoxModel result = new StandardListBoxModel();
+		if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+			return result.includeCurrentValue(credentialsId);
+		} 
+
+		if (item != null
+			&& !item.hasPermission(Item.EXTENDED_READ)
+			&& !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+		return result.includeCurrentValue(credentialsId);
+		}
+
+		return result
+			.includeEmptyValue()
+			.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
+			.includeCurrentValue(credentialsId);
+	} 
 
 }
