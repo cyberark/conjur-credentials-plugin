@@ -7,7 +7,7 @@
         <version>3.56</version>
         <relativePath />
     </parent>
-    <groupId>io.jenkins.plugins</groupId>
+    <groupId>org.conjur.jenkins</groupId>
     <artifactId>conjur-credentials</artifactId>
     <packaging>hpi</packaging>
     <properties>
@@ -16,7 +16,7 @@
     </properties>
     <name>Conjur Secrets Plugin</name>
     <description>Plugin to retrieve secrets from CyberArk/Conjur</description>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <url>https://www.conjur.org</url>
     
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
