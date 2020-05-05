@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
+import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 
@@ -56,45 +57,6 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 	void setContext(Run<?, ?> context);
 
-	static class NewConjurSecretCredentials extends SlaveToMasterCallable<ConjurSecretCredentials, IOException> {
-		/**
-		 * Standardize serialization.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		String credentialID;
-		// Run<?, ?> context;
-
-		public NewConjurSecretCredentials(String credentialID) {
-			super();
-			this.credentialID = credentialID;
-			// this.context = context;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public ConjurSecretCredentials call() throws IOException {
-			ConjurSecretCredentials credential = CredentialsMatchers
-					.firstOrNull(
-							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
-									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
-							CredentialsMatchers.withId(this.credentialID));
-
-			// if (credential == null && context != null) {
-			// 	getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-			// 	Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
-			// 	credential = CredentialsMatchers
-			// 			.firstOrNull(
-			// 					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-			// 							Collections.<DomainRequirement>emptyList()),
-			// 					CredentialsMatchers.withId(credentialID));
-			// }
-
-			return credential;
-		}
-	}
-
 	static ConjurSecretCredentials credentialFromContextIfNeeded(ConjurSecretCredentials credential, String credentialID, Run<?, ?> context) {
 		if (credential == null && context != null) {
 			getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
@@ -127,7 +89,7 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 		} else {
 			// Running from a slave, Get credential entry from master
 			try {
-				credential = channel.call(new NewConjurSecretCredentials(credentialID));
+				credential = channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
 			} catch (Exception e) {
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
 				e.printStackTrace();

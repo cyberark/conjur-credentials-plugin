@@ -109,27 +109,6 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		return "ConjurSecret:" + this.variablePath;
 	}
 
-	static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
-		/**
-		 * Standardize serialization.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		String secretString;
-
-		public NewSecretFromString(String secretString) {
-			super();
-			this.secretString = secretString;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public Secret call() throws IOException {
-			return Secret.fromString(secretString);
-		}
-	}
-
 	static Secret secretFromString(String secretString) {
 		Channel channel = Channel.current();
 		Secret secretResult = null;

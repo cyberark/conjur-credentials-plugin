@@ -24,9 +24,11 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
+import org.conjur.jenkins.conjursecrets.ConjurSecretCredentials;
 
 import hudson.remoting.Channel;
 import hudson.security.ACL;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.security.SlaveToMasterCallable;
@@ -99,7 +101,7 @@ public class ConjurAPIUtils {
 		CertificateCredentials certificate = certificateFromConfiguration(configuration);
 
 		if (certificate != null) {
-			return httpClientWithCertificate(certificate)
+			return httpClientWithCertificate(certificate);
 		}
 
 		return new OkHttpClient.Builder().build();
@@ -177,6 +179,66 @@ public class ConjurAPIUtils {
 		public GlobalConjurConfiguration call() throws IOException {
 			GlobalConjurConfiguration result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 			return result;
+		}
+	}
+
+	public static class NewConjurSecretCredentials extends SlaveToMasterCallable<ConjurSecretCredentials, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		String credentialID;
+		// Run<?, ?> context;
+
+		public NewConjurSecretCredentials(String credentialID) {
+			super();
+			this.credentialID = credentialID;
+			// this.context = context;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public ConjurSecretCredentials call() throws IOException {
+			ConjurSecretCredentials credential = CredentialsMatchers
+					.firstOrNull(
+							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
+									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+							CredentialsMatchers.withId(this.credentialID));
+
+			// if (credential == null && context != null) {
+			// 	getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+			// 	Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
+			// 	credential = CredentialsMatchers
+			// 			.firstOrNull(
+			// 					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+			// 							Collections.<DomainRequirement>emptyList()),
+			// 					CredentialsMatchers.withId(credentialID));
+			// }
+
+			return credential;
+		}
+	}
+
+	static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		String secretString;
+
+		public NewSecretFromString(String secretString) {
+			super();
+			this.secretString = secretString;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public Secret call() throws IOException {
+			return Secret.fromString(secretString);
 		}
 	}
 
