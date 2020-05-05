@@ -40,17 +40,6 @@ public class ConjurAPIUtils {
 		return Logger.getLogger(ConjurAPIUtils.class.getName());
 	}
 
-	// static CertificateCredentials certificateFromMaster(Channel channel, ConjurConfiguration configuration) {
-	// 	try {
-	// 		return channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
-	// 	} catch (IOException | InterruptedException e) {
-	// 		getLogger().log(Level.INFO, "Exception getting Certificate from Master", e);
-	// 		e.printStackTrace();
-	// 	}
-
-	// 	return null;
-	// }
-
 	static CertificateCredentials certificateFromConfiguration(ConjurConfiguration configuration) {
 		Channel channel = Channel.current();
 
