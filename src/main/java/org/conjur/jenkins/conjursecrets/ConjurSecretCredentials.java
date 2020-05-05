@@ -1,6 +1,5 @@
 package org.conjur.jenkins.conjursecrets;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,6 @@ import hudson.remoting.Channel;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-import jenkins.security.SlaveToMasterCallable;
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
@@ -87,7 +85,8 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 			credential = credentialFromContextIfNeeded(credential, credentialID, context);
 		} else {
-			credential = ConjurAPIUtils.credentialFromMaster(channel, credentialID);
+			credential = (ConjurSecretCredentials) ConjurAPIUtils.objectFromMaster(channel,
+					new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
 		}
 
 

@@ -27,7 +27,6 @@ import hudson.model.ItemGroup;
 import hudson.model.Run;
 import hudson.remoting.Channel;
 import hudson.util.Secret;
-import jenkins.security.SlaveToMasterCallable;
 import okhttp3.OkHttpClient;
 
 public class ConjurSecretCredentialsImpl extends BaseStandardCredentials implements ConjurSecretCredentials {
@@ -113,9 +112,10 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		Channel channel = Channel.current();
 
 		if (channel != null) {
-			return ConjurAPIUtils.secretFromMaster(channel, secretString);
+			return (Secret) ConjurAPIUtils.objectFromMaster(channel,
+					new ConjurAPIUtils.NewSecretFromString(secretString));
 		}
-		
+
 		return Secret.fromString(secretString);
 	}
 

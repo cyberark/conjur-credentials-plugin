@@ -40,16 +40,16 @@ public class ConjurAPIUtils {
 		return Logger.getLogger(ConjurAPIUtils.class.getName());
 	}
 
-	static CertificateCredentials certificateFromMaster(Channel channel, ConjurConfiguration configuration) {
-		try {
-			return channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
-		} catch (IOException | InterruptedException e) {
-			getLogger().log(Level.INFO, "Exception getting Certificate from Master", e);
-			e.printStackTrace();
-		}
+	// static CertificateCredentials certificateFromMaster(Channel channel, ConjurConfiguration configuration) {
+	// 	try {
+	// 		return channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
+	// 	} catch (IOException | InterruptedException e) {
+	// 		getLogger().log(Level.INFO, "Exception getting Certificate from Master", e);
+	// 		e.printStackTrace();
+	// 	}
 
-		return null;
-	}
+	// 	return null;
+	// }
 
 	static CertificateCredentials certificateFromConfiguration(ConjurConfiguration configuration) {
 		Channel channel = Channel.current();
@@ -62,7 +62,8 @@ public class ConjurAPIUtils {
 							Collections.<DomainRequirement>emptyList()),
 					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
 		} else {
-			certificate = certificateFromMaster(channel, configuration);
+			certificate = (CertificateCredentials) objectFromMaster(channel,
+					new ConjurAPIUtils.NewCertificateCredentials(configuration));
 		}
 		return certificate;
 	}
@@ -226,26 +227,37 @@ public class ConjurAPIUtils {
 		}
 	}
 
-	public static ConjurSecretCredentials credentialFromMaster(Channel channel, String credentialID) {
+	public static <T> Object objectFromMaster(Channel channel, SlaveToMasterCallable<T, IOException> callable) {
 		// Running from a slave, Get credential entry from master
 		try {
-			return channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
+			return channel.call(callable);
 		} catch (Exception e) {
-			getLogger().log(Level.INFO, "Exception getting credential from Master", e);
+			getLogger().log(Level.INFO, "Exception getting object from Master", e);
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static Secret secretFromMaster(Channel channel, String secretString) {
-		try {
-			return channel.call(new ConjurAPIUtils.NewSecretFromString(secretString));
-		} catch (IOException | InterruptedException e) {
-			getLogger().log(Level.INFO, "Exception getting secret from Master", e);
-			e.printStackTrace();
-		}
-		return null;
-	}
+	// public static ConjurSecretCredentials credentialFromMaster(Channel channel, String credentialID) {
+	// 	// Running from a slave, Get credential entry from master
+	// 	try {
+	// 		return channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
+	// 	} catch (Exception e) {
+	// 		getLogger().log(Level.INFO, "Exception getting credential from Master", e);
+	// 		e.printStackTrace();
+	// 	}
+	// 	return null;
+	// }
+
+	// public static Secret secretFromMaster(Channel channel, String secretString) {
+	// 	try {
+	// 		return channel.call(new ConjurAPIUtils.NewSecretFromString(secretString));
+	// 	} catch (IOException | InterruptedException e) {
+	// 		getLogger().log(Level.INFO, "Exception getting secret from Master", e);
+	// 		e.printStackTrace();
+	// 	}
+	// 	return null;
+	// }
 
 	public static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
 		/**

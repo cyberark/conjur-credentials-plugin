@@ -1,10 +1,5 @@
 package org.conjur.jenkins.configuration;
 
-import hudson.Extension;
-import hudson.remoting.Channel;
-import jenkins.model.GlobalConfiguration;
-import jenkins.security.SlaveToMasterCallable;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.logging.Level;
@@ -14,6 +9,10 @@ import javax.annotation.Nonnull;
 
 import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.kohsuke.stapler.DataBoundSetter;
+
+import hudson.Extension;
+import hudson.remoting.Channel;
+import jenkins.model.GlobalConfiguration;
 
 /**
  * Example of Jenkins global configuration.
