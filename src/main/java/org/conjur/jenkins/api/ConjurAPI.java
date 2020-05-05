@@ -4,41 +4,30 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.conjur.jenkins.configuration.ConjurJITJobProperty;
-
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.CertificateCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.configuration.ConjurJITJobProperty;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import okhttp3.MediaType;
@@ -59,6 +48,10 @@ public class ConjurAPI {
 
 	private static final Logger LOGGER = Logger.getLogger(ConjurAPI.class.getName());
 
+	static Logger getLogger() {
+		return Logger.getLogger(ConjurAPI.class.getName());
+	}
+
 	private static void defaultToEnvironment(ConjurAuthnInfo conjurAuthn) {
 		Map<String, String> env = System.getenv();
 		if (conjurAuthn.applianceUrl == null && env.containsKey("CONJUR_APPLIANCE_URL"))
@@ -76,13 +69,25 @@ public class ConjurAPI {
 
 		String resultingToken = null;
 
-		List<UsernamePasswordCredentials> availableCredentials = CredentialsProvider.lookupCredentials(
-				UsernamePasswordCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-				Collections.<DomainRequirement>emptyList());
+		Channel channel = Channel.current();
 
-		if (context != null) {
-			availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+		List<UsernamePasswordCredentials> availableCredentials = null;
+
+		if (channel == null) {
+			availableCredentials = CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+					Jenkins.get(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList());
+
+			if (context != null) {
+				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+						context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+			}
+		} else {
+			try {
+				availableCredentials = channel.call(new ConjurAPIUtils.NewAvailableCredentials());
+			} catch (InterruptedException e) {
+				getLogger().log(Level.INFO, "Exception getting available credentials", e);
+				e.printStackTrace();
+			}
 		}
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, availableCredentials, context);
@@ -162,7 +167,8 @@ public class ConjurAPI {
 		return null;
 	}
 
-	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature, String keyAlgorithm) {
+	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature,
+			String keyAlgorithm) {
 		// Build the response Body
 		Map<String, String> body = new HashMap<String, String>();
 		body.put("buildNumber", buildNumber);
@@ -189,61 +195,16 @@ public class ConjurAPI {
 			String jobName = context.getParent().getFullName();
 			int buildNumber = context.getNumber();
 			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
-				String prefix = conjurJobConfig.getHostPrefix();
+			String prefix = conjurJobConfig.getHostPrefix();
 			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
 			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
 			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();	
-			conjurAuthn.apiKey = apiKeyForAuthentication(prefix,
-														 String.valueOf(buildNumber), 
-														 signatureForRequest(jobName + "-" + buildNumber, privateKey),
-														 privateKey.getAlgorithm());
+			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
+			conjurAuthn.apiKey = apiKeyForAuthentication(prefix, String.valueOf(buildNumber),
+					signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
 			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
 		}
-	}
-
-	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
-
-		OkHttpClient client = null;
-
-		CertificateCredentials certificate = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
-		
-		if (certificate != null) {
-			try {
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(certificate.getKeyStore(), certificate.getPassword().getPlainText().toCharArray());
-				KeyManager[] kms = kmf.getKeyManagers();
-
-				KeyStore trustStore = KeyStore.getInstance("JKS");
-				trustStore.load(null, null);
-				Enumeration<String> e = certificate.getKeyStore().aliases();
-				while (e.hasMoreElements()) {
-					String alias = e.nextElement();
-					trustStore.setCertificateEntry(alias, certificate.getKeyStore().getCertificate(alias));
-				}
-				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-				tmf.init(trustStore);
-				TrustManager[] tms = tmf.getTrustManagers();
-
-				SSLContext sslContext = null;
-				sslContext = SSLContext.getInstance("TLSv1.2");
-				sslContext.init(kms, tms, new SecureRandom());
-
-				client = new OkHttpClient.Builder()
-						.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tms[0]).build();
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Error configuring server certificates.", e);
-			}
-		} else {
-			client = new OkHttpClient.Builder().build();
-		}
-
-		return client;
 	}
 
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
