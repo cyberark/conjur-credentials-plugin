@@ -1,5 +1,6 @@
 package org.conjur.jenkins.conjursecrets;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,10 +17,11 @@ import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 
 import hudson.model.Item;
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-
+import jenkins.security.SlaveToMasterCallable;
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
@@ -54,23 +56,80 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 	void setContext(Run<?, ?> context);
 
+	static class NewConjurSecretCredentials extends SlaveToMasterCallable<ConjurSecretCredentials, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		String credentialID;
+		// Run<?, ?> context;
+
+		public NewConjurSecretCredentials(String credentialID) {
+			super();
+			this.credentialID = credentialID;
+			// this.context = context;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public ConjurSecretCredentials call() throws IOException {
+			ConjurSecretCredentials credential = CredentialsMatchers
+					.firstOrNull(
+							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
+									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+							CredentialsMatchers.withId(this.credentialID));
+
+			// if (credential == null && context != null) {
+			// 	getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+			// 	Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
+			// 	credential = CredentialsMatchers
+			// 			.firstOrNull(
+			// 					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+			// 							Collections.<DomainRequirement>emptyList()),
+			// 					CredentialsMatchers.withId(credentialID));
+			// }
+
+			return credential;
+		}
+	}
+
 	static ConjurSecretCredentials credentialWithID(String credentialID, Run<?, ?> context) {
 
 		getLogger().log(Level.INFO, "* CredentialID: {0}", credentialID);
 
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(credentialID));
+		ConjurSecretCredentials credential = null;
 
-		if(credential == null && context != null) {
-            getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
-			credential = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(credentialID));
+		Channel channel = Channel.current();
+
+		if (channel == null) {
+			credential = CredentialsMatchers
+					.firstOrNull(
+							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
+									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+							CredentialsMatchers.withId(credentialID));
+
+			if (credential == null && context != null) {
+				getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+				Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
+				credential = CredentialsMatchers
+						.firstOrNull(
+								CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+										Collections.<DomainRequirement>emptyList()),
+								CredentialsMatchers.withId(credentialID));
+			}
+		} else {
+			// Running from a slave, Get credential entry from master
+			try {
+				credential = channel.call(new NewConjurSecretCredentials(credentialID));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				e.printStackTrace();
+			}
 		}
+
 
 		if (credential == null) {
 			String contextLevel = String.format("Unable to find credential at %s", 

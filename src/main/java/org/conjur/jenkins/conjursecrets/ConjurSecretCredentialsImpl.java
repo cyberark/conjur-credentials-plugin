@@ -24,7 +24,9 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.util.Secret;
+import jenkins.security.SlaveToMasterCallable;
 import okhttp3.OkHttpClient;
 
 public class ConjurSecretCredentialsImpl extends BaseStandardCredentials implements ConjurSecretCredentials {
@@ -51,6 +53,11 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	private transient Run<?, ?> context;
 
+	static Logger getLogger() {
+		return Logger.getLogger(ConjurSecretCredentialsImpl.class.getName());
+	}
+
+
 	@DataBoundConstructor
 	public ConjurSecretCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
 			@CheckForNull String variablePath, @CheckForNull String description) {
@@ -71,8 +78,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
 			// Taking the configuration from the Job
 			return ConjurAPI.logConjurConfiguration(conjurJobConfig.getConjurConfiguration());
-		} 
-		
+		}
+
 		ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(context.getParent());
 		if (inheritedConfig != null) {
 			return ConjurAPI.logConjurConfiguration(inheritedConfig);
@@ -85,7 +92,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	@SuppressWarnings("unchecked")
 	private ConjurConfiguration inheritedConjurConfiguration(Item job) {
 		for (ItemGroup<? extends Item> g = job
-		.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
+				.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
 			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
 					.get(FolderConjurConfiguration.class);
 			if (!(fconf == null || fconf.getInheritFromParent())) {
@@ -99,6 +106,27 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	@Override
 	public String getDisplayName() {
 		return "ConjurSecret:" + this.variablePath;
+	}
+
+	static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		String secretString;
+
+		public NewSecretFromString(String secretString) {
+			super();
+			this.secretString = secretString;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public Secret call() throws IOException {
+			return Secret.fromString(secretString);
+		}
 	}
 
 	public Secret getSecret() {
@@ -115,7 +143,25 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			LOGGER.log(Level.WARNING, "EXCEPTION: " + e.getMessage());
 			throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
-		return Secret.fromString(result);
+
+		Channel channel = Channel.current();
+
+		Secret secretResult = null;
+
+		if (channel == null) {
+			secretResult = Secret.fromString(result);
+		} else {
+			try {
+				secretResult = channel.call(new NewSecretFromString(result));
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				e.printStackTrace();
+			}
+
+		}
+
+		return secretResult;
 	}
 
 	public String getVariablePath() {

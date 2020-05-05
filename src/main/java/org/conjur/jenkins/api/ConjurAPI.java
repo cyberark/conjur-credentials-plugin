@@ -39,8 +39,10 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
+import jenkins.security.SlaveToMasterCallable;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -59,6 +61,10 @@ public class ConjurAPI {
 
 	private static final Logger LOGGER = Logger.getLogger(ConjurAPI.class.getName());
 
+	static Logger getLogger() {
+		return Logger.getLogger(ConjurAPI.class.getName());
+	}
+
 	private static void defaultToEnvironment(ConjurAuthnInfo conjurAuthn) {
 		Map<String, String> env = System.getenv();
 		if (conjurAuthn.applianceUrl == null && env.containsKey("CONJUR_APPLIANCE_URL"))
@@ -71,18 +77,63 @@ public class ConjurAPI {
 			conjurAuthn.apiKey = env.get("CONJUR_AUTHN_API_KEY");
 	}
 
+	static class NewAvailableCredentials extends SlaveToMasterCallable<List<UsernamePasswordCredentials>, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		// Run<?, ?> context;
+
+		// public NewAvailableCredentials(Run<?, ?> context) {
+		// super();
+		// this.context = context;
+		// }
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public List<UsernamePasswordCredentials> call() throws IOException {
+
+			List<UsernamePasswordCredentials> availableCredentials = CredentialsProvider.lookupCredentials(
+					UsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM,
+					Collections.<DomainRequirement>emptyList());
+
+			// if (context != null) {
+			// availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+			// context.getParent(), ACL.SYSTEM,
+			// Collections.<DomainRequirement>emptyList()));
+			// }
+
+			return availableCredentials;
+		}
+	}
+
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration,
 			Run<?, ?> context) throws IOException {
 
 		String resultingToken = null;
 
-		List<UsernamePasswordCredentials> availableCredentials = CredentialsProvider.lookupCredentials(
-				UsernamePasswordCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-				Collections.<DomainRequirement>emptyList());
+		Channel channel = Channel.current();
 
-		if (context != null) {
-			availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+		List<UsernamePasswordCredentials> availableCredentials = null;
+
+		if (channel == null) {
+			availableCredentials = CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+					Jenkins.get(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList());
+
+			if (context != null) {
+				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+						context.getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+			}
+		} else {
+			try {
+				availableCredentials = channel.call(new NewAvailableCredentials());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				e.printStackTrace();
+			}
 		}
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, availableCredentials, context);
@@ -162,7 +213,8 @@ public class ConjurAPI {
 		return null;
 	}
 
-	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature, String keyAlgorithm) {
+	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature,
+			String keyAlgorithm) {
 		// Build the response Body
 		Map<String, String> body = new HashMap<String, String>();
 		body.put("buildNumber", buildNumber);
@@ -189,17 +241,43 @@ public class ConjurAPI {
 			String jobName = context.getParent().getFullName();
 			int buildNumber = context.getNumber();
 			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
-				String prefix = conjurJobConfig.getHostPrefix();
+			String prefix = conjurJobConfig.getHostPrefix();
 			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
 			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
 			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
 			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();	
-			conjurAuthn.apiKey = apiKeyForAuthentication(prefix,
-														 String.valueOf(buildNumber), 
-														 signatureForRequest(jobName + "-" + buildNumber, privateKey),
-														 privateKey.getAlgorithm());
+			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
+			conjurAuthn.apiKey = apiKeyForAuthentication(prefix, String.valueOf(buildNumber),
+					signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
 			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
+		}
+	}
+
+	static class NewCertificateCredentials extends SlaveToMasterCallable<CertificateCredentials, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		ConjurConfiguration configuration;
+		// Run<?, ?> context;
+
+		public NewCertificateCredentials(ConjurConfiguration configuration) {
+			super();
+			this.configuration = configuration;
+			// this.context = context;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public CertificateCredentials call() throws IOException {
+			CertificateCredentials certificate = CredentialsMatchers.firstOrNull(
+					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
+							Collections.<DomainRequirement>emptyList()),
+					CredentialsMatchers.withId(this.configuration.getCertificateCredentialID()));
+
+			return certificate;
 		}
 	}
 
@@ -207,10 +285,24 @@ public class ConjurAPI {
 
 		OkHttpClient client = null;
 
-		CertificateCredentials certificate = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
+		Channel channel = Channel.current();
+
+		CertificateCredentials certificate = null;
+
+		if (channel == null) {
+			certificate = CredentialsMatchers.firstOrNull(
+					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
+							Collections.<DomainRequirement>emptyList()),
+					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
+		} else {
+			try {
+				certificate = channel.call(new NewCertificateCredentials(configuration));
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				e.printStackTrace();
+			}
+		}
 		
 		if (certificate != null) {
 			try {
