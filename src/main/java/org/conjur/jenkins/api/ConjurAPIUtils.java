@@ -238,27 +238,6 @@ public class ConjurAPIUtils {
 		return null;
 	}
 
-	// public static ConjurSecretCredentials credentialFromMaster(Channel channel, String credentialID) {
-	// 	// Running from a slave, Get credential entry from master
-	// 	try {
-	// 		return channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
-	// 	} catch (Exception e) {
-	// 		getLogger().log(Level.INFO, "Exception getting credential from Master", e);
-	// 		e.printStackTrace();
-	// 	}
-	// 	return null;
-	// }
-
-	// public static Secret secretFromMaster(Channel channel, String secretString) {
-	// 	try {
-	// 		return channel.call(new ConjurAPIUtils.NewSecretFromString(secretString));
-	// 	} catch (IOException | InterruptedException e) {
-	// 		getLogger().log(Level.INFO, "Exception getting secret from Master", e);
-	// 		e.printStackTrace();
-	// 	}
-	// 	return null;
-	// }
-
 	public static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
 		/**
 		 * Standardize serialization.

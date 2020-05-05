@@ -1,8 +1,6 @@
 package org.conjur.jenkins.configuration;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -31,17 +29,6 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
 	}
 
-	public static GlobalConjurConfiguration globalConfigurationFromMaster(Channel channel) {
-		GlobalConjurConfiguration result = null;
-		try {
-			result = channel.call(new ConjurAPIUtils.NewGlobalConfiguration());
-		} catch (IOException | InterruptedException e) {
-			getLogger().log(Level.INFO, "Exception getting global configuration", e);
-			e.printStackTrace();
-		}
-		return result;
-	}
-
 	/** @return the singleton instance */
 	@Nonnull
 	public static GlobalConjurConfiguration get() {
@@ -51,7 +38,8 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		if (channel == null) {
 			result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 		} else {
-			result = globalConfigurationFromMaster(channel);
+			result = (GlobalConjurConfiguration) ConjurAPIUtils.objectFromMaster(channel,
+					new ConjurAPIUtils.NewGlobalConfiguration());
 		}
 		if (result == null) {
 			throw new IllegalStateException();
