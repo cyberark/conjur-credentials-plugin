@@ -4,45 +4,32 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.conjur.jenkins.configuration.ConjurJITJobProperty;
-
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.CertificateCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.configuration.ConjurJITJobProperty;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import hudson.model.Run;
 import hudson.remoting.Channel;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
-import jenkins.security.SlaveToMasterCallable;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -96,7 +83,7 @@ public class ConjurAPI {
 			}
 		} else {
 			try {
-				availableCredentials = channel.call(new SlaveToMasterUtils.NewAvailableCredentials());
+				availableCredentials = channel.call(new ConjurAPIUtils.NewAvailableCredentials());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
@@ -219,63 +206,6 @@ public class ConjurAPI {
 					signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
 			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
 		}
-	}
-
-	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
-
-		OkHttpClient client = null;
-
-		Channel channel = Channel.current();
-
-		CertificateCredentials certificate = null;
-
-		if (channel == null) {
-			certificate = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
-		} else {
-			try {
-				certificate = channel.call(new SlaveToMasterUtils.NewCertificateCredentials(configuration));
-			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
-		}
-		
-		if (certificate != null) {
-			try {
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(certificate.getKeyStore(), certificate.getPassword().getPlainText().toCharArray());
-				KeyManager[] kms = kmf.getKeyManagers();
-
-				KeyStore trustStore = KeyStore.getInstance("JKS");
-				trustStore.load(null, null);
-				Enumeration<String> e = certificate.getKeyStore().aliases();
-				while (e.hasMoreElements()) {
-					String alias = e.nextElement();
-					trustStore.setCertificateEntry(alias, certificate.getKeyStore().getCertificate(alias));
-				}
-				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-				tmf.init(trustStore);
-				TrustManager[] tms = tmf.getTrustManagers();
-
-				SSLContext sslContext = null;
-				sslContext = SSLContext.getInstance("TLSv1.2");
-				sslContext.init(kms, tms, new SecureRandom());
-
-				client = new OkHttpClient.Builder()
-						.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tms[0]).build();
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Error configuring server certificates.", e);
-			}
-		} else {
-			client = new OkHttpClient.Builder().build();
-		}
-
-		return client;
 	}
 
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,

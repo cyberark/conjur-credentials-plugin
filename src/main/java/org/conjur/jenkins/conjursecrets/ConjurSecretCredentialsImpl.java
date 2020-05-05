@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
 import org.conjur.jenkins.api.ConjurAPI;
+import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
@@ -134,12 +135,11 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		Secret secretResult = null;
 
 		if (channel == null) {
-			secretResult = Secret.fromString(result);
+			secretResult = Secret.fromString(secretString);
 		} else {
 			try {
-				secretResult = channel.call(new NewSecretFromString(result));
+				secretResult = channel.call(new NewSecretFromString(secretString));
 			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
 				e.printStackTrace();
 			}
@@ -151,7 +151,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		String result = "";
 		try {
 			// Get Http Client
-			OkHttpClient client = ConjurAPI.getHttpClient(this.conjurConfiguration);
+			OkHttpClient client = ConjurAPIUtils.getHttpClient(this.conjurConfiguration);
 			// Authenticate to Conjur
 			String authToken = ConjurAPI.getAuthorizationToken(client, this.conjurConfiguration, context);
 			// Retrieve secret from Conjur
