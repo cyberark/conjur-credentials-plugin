@@ -40,6 +40,17 @@ public class ConjurAPIUtils {
 		return Logger.getLogger(ConjurAPIUtils.class.getName());
 	}
 
+	static CertificateCredentials certificateFromMaster(Channel channel, ConjurConfiguration configuration) {
+		try {
+			return channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
+		} catch (IOException | InterruptedException e) {
+			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	static CertificateCredentials certificateFromConfiguration(ConjurConfiguration configuration) {
 		Channel channel = Channel.current();
 
@@ -51,12 +62,7 @@ public class ConjurAPIUtils {
 							Collections.<DomainRequirement>emptyList()),
 					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
 		} else {
-			try {
-				certificate = channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
-			} catch (IOException | InterruptedException e) {
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
+			certificate = certificateFromMaster(channel, configuration);
 		}
 		return certificate;
 	}
@@ -231,7 +237,17 @@ public class ConjurAPIUtils {
 		return null;
 	}
 
-	static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
+	public static Secret secretFromMaster(Channel channel, String secretString) {
+		try {
+			return channel.call(new ConjurAPIUtils.NewSecretFromString(secretString));
+		} catch (IOException | InterruptedException e) {
+			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
 		/**
 		 * Standardize serialization.
 		 */

@@ -111,19 +111,12 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	static Secret secretFromString(String secretString) {
 		Channel channel = Channel.current();
-		Secret secretResult = null;
 
-		if (channel == null) {
-			secretResult = Secret.fromString(secretString);
-		} else {
-			try {
-				secretResult = channel.call(new NewSecretFromString(secretString));
-			} catch (IOException | InterruptedException e) {
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
+		if (channel != null) {
+			return ConjurAPIUtils.secretFromMaster(channel, secretString);
 		}
-		return secretResult;
+		
+		return Secret.fromString(secretString);
 	}
 
 	public Secret getSecret() {
