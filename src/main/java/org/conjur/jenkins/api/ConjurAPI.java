@@ -86,7 +86,7 @@ public class ConjurAPI {
 				availableCredentials = channel.call(new ConjurAPIUtils.NewAvailableCredentials());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				getLogger().log(Level.INFO, "Exception getting available credentials", e);
 				e.printStackTrace();
 			}
 		}
