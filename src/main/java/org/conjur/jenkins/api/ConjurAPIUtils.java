@@ -58,43 +58,49 @@ public class ConjurAPIUtils {
 		return certificate;
 	}
 	
-	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
-
+	static OkHttpClient httpClientWithCertificate(CertificateCredentials certificate) {
 		OkHttpClient client = null;
-		CertificateCredentials certificate = certificateFromConfiguration(configuration);
 
-		if (certificate != null) {
-			try {
+		try {
 
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(certificate.getKeyStore(), certificate.getPassword().getPlainText().toCharArray());
-				KeyManager[] kms = kmf.getKeyManagers();
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			kmf.init(certificate.getKeyStore(), certificate.getPassword().getPlainText().toCharArray());
+			KeyManager[] kms = kmf.getKeyManagers();
 
-				KeyStore trustStore = KeyStore.getInstance("JKS");
-				trustStore.load(null, null);
-				Enumeration<String> e = certificate.getKeyStore().aliases();
-				while (e.hasMoreElements()) {
-					String alias = e.nextElement();
-					trustStore.setCertificateEntry(alias, certificate.getKeyStore().getCertificate(alias));
-				}
-				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-				tmf.init(trustStore);
-				TrustManager[] tms = tmf.getTrustManagers();
-
-				SSLContext sslContext = null;
-				sslContext = SSLContext.getInstance("TLSv1.2");
-				sslContext.init(kms, tms, new SecureRandom());
-
-				client = new OkHttpClient.Builder()
-						.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tms[0]).build();
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Error configuring server certificates.", e);
+			KeyStore trustStore = KeyStore.getInstance("JKS");
+			trustStore.load(null, null);
+			Enumeration<String> e = certificate.getKeyStore().aliases();
+			while (e.hasMoreElements()) {
+				String alias = e.nextElement();
+				trustStore.setCertificateEntry(alias, certificate.getKeyStore().getCertificate(alias));
 			}
-		} else {
-			client = new OkHttpClient.Builder().build();
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init(trustStore);
+			TrustManager[] tms = tmf.getTrustManagers();
+
+			SSLContext sslContext = null;
+			sslContext = SSLContext.getInstance("TLSv1.2");
+			sslContext.init(kms, tms, new SecureRandom());
+
+			client = new OkHttpClient.Builder()
+					.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tms[0]).build();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Error configuring server certificates.", e);
 		}
 
 		return client;
+
+	}
+
+	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
+
+		CertificateCredentials certificate = certificateFromConfiguration(configuration);
+
+		if (certificate != null) {
+			return httpClientWithCertificate(certificate)
+		}
+
+		return new OkHttpClient.Builder().build();
 	}
 
 	static class NewCertificateCredentials extends SlaveToMasterCallable<CertificateCredentials, IOException> {
