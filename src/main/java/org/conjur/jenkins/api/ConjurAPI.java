@@ -77,38 +77,6 @@ public class ConjurAPI {
 			conjurAuthn.apiKey = env.get("CONJUR_AUTHN_API_KEY");
 	}
 
-	static class NewAvailableCredentials extends SlaveToMasterCallable<List<UsernamePasswordCredentials>, IOException> {
-		/**
-		 * Standardize serialization.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		// Run<?, ?> context;
-
-		// public NewAvailableCredentials(Run<?, ?> context) {
-		// super();
-		// this.context = context;
-		// }
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public List<UsernamePasswordCredentials> call() throws IOException {
-
-			List<UsernamePasswordCredentials> availableCredentials = CredentialsProvider.lookupCredentials(
-					UsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM,
-					Collections.<DomainRequirement>emptyList());
-
-			// if (context != null) {
-			// availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-			// context.getParent(), ACL.SYSTEM,
-			// Collections.<DomainRequirement>emptyList()));
-			// }
-
-			return availableCredentials;
-		}
-	}
-
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration,
 			Run<?, ?> context) throws IOException {
 
@@ -128,7 +96,7 @@ public class ConjurAPI {
 			}
 		} else {
 			try {
-				availableCredentials = channel.call(new NewAvailableCredentials());
+				availableCredentials = channel.call(new SlaveToMasterUtils.NewAvailableCredentials());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
@@ -253,34 +221,6 @@ public class ConjurAPI {
 		}
 	}
 
-	static class NewCertificateCredentials extends SlaveToMasterCallable<CertificateCredentials, IOException> {
-		/**
-		 * Standardize serialization.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		ConjurConfiguration configuration;
-		// Run<?, ?> context;
-
-		public NewCertificateCredentials(ConjurConfiguration configuration) {
-			super();
-			this.configuration = configuration;
-			// this.context = context;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public CertificateCredentials call() throws IOException {
-			CertificateCredentials certificate = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(this.configuration.getCertificateCredentialID()));
-
-			return certificate;
-		}
-	}
-
 	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
 
 		OkHttpClient client = null;
@@ -296,7 +236,7 @@ public class ConjurAPI {
 					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
 		} else {
 			try {
-				certificate = channel.call(new NewCertificateCredentials(configuration));
+				certificate = channel.call(new SlaveToMasterUtils.NewCertificateCredentials(configuration));
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
