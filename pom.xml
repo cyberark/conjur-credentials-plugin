@@ -7,7 +7,7 @@
         <version>3.56</version>
         <relativePath />
     </parent>
-    <groupId>io.jenkins.plugins</groupId>
+    <groupId>org.conjur.jenkins</groupId>
     <artifactId>conjur-credentials</artifactId>
     <packaging>hpi</packaging>
     <properties>

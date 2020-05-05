@@ -45,7 +45,6 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 
 	@Override
 	public String getUsername() {
-		LOGGER.log(Level.INFO, "Get UserName => {0}", this.username);
 		return this.username;
 	}
 

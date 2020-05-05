@@ -10,7 +10,7 @@ To build the plugin from source, Maven is required. Build it like this:
 ```bash
 git clone {repo}
 cd conjur-credentials-plugin
-mvn install -DskipTests
+mvn clean install
 ```
 ### From Binaries
 
