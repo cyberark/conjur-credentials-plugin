@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
 import org.conjur.jenkins.api.ConjurAPI;
+import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
@@ -24,6 +25,7 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.util.Secret;
 import okhttp3.OkHttpClient;
 
@@ -51,6 +53,11 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	private transient Run<?, ?> context;
 
+	static Logger getLogger() {
+		return Logger.getLogger(ConjurSecretCredentialsImpl.class.getName());
+	}
+
+
 	@DataBoundConstructor
 	public ConjurSecretCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
 			@CheckForNull String variablePath, @CheckForNull String description) {
@@ -71,8 +78,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
 			// Taking the configuration from the Job
 			return ConjurAPI.logConjurConfiguration(conjurJobConfig.getConjurConfiguration());
-		} 
-		
+		}
+
 		ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(context.getParent());
 		if (inheritedConfig != null) {
 			return ConjurAPI.logConjurConfiguration(inheritedConfig);
@@ -85,7 +92,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	@SuppressWarnings("unchecked")
 	private ConjurConfiguration inheritedConjurConfiguration(Item job) {
 		for (ItemGroup<? extends Item> g = job
-		.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
+				.getParent(); g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
 			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
 					.get(FolderConjurConfiguration.class);
 			if (!(fconf == null || fconf.getInheritFromParent())) {
@@ -101,11 +108,22 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		return "ConjurSecret:" + this.variablePath;
 	}
 
+	static Secret secretFromString(String secretString) {
+		Channel channel = Channel.current();
+
+		if (channel != null) {
+			return (Secret) ConjurAPIUtils.objectFromMaster(channel,
+					new ConjurAPIUtils.NewSecretFromString(secretString));
+		}
+
+		return Secret.fromString(secretString);
+	}
+
 	public Secret getSecret() {
 		String result = "";
 		try {
 			// Get Http Client
-			OkHttpClient client = ConjurAPI.getHttpClient(this.conjurConfiguration);
+			OkHttpClient client = ConjurAPIUtils.getHttpClient(this.conjurConfiguration);
 			// Authenticate to Conjur
 			String authToken = ConjurAPI.getAuthorizationToken(client, this.conjurConfiguration, context);
 			// Retrieve secret from Conjur
@@ -115,7 +133,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			LOGGER.log(Level.WARNING, "EXCEPTION: " + e.getMessage());
 			throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
-		return Secret.fromString(result);
+
+		return secretFromString(result);
 	}
 
 	public String getVariablePath() {

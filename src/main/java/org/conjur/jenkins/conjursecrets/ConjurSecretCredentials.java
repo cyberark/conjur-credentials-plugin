@@ -11,15 +11,16 @@ import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
+import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 
 import hudson.model.Item;
 import hudson.model.Run;
+import hudson.remoting.Channel;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
@@ -54,23 +55,40 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 	void setContext(Run<?, ?> context);
 
+	static ConjurSecretCredentials credentialFromContextIfNeeded(ConjurSecretCredentials credential, String credentialID, Run<?, ?> context) {
+		if (credential == null && context != null) {
+			getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
+			Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
+			return CredentialsMatchers
+					.firstOrNull(
+							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
+									Collections.<DomainRequirement>emptyList()),
+							CredentialsMatchers.withId(credentialID));
+		}
+		return credential;
+	}
+
 	static ConjurSecretCredentials credentialWithID(String credentialID, Run<?, ?> context) {
 
 		getLogger().log(Level.INFO, "* CredentialID: {0}", credentialID);
 
-		ConjurSecretCredentials credential = CredentialsMatchers.firstOrNull(
-				CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.getInstance(), ACL.SYSTEM,
-						Collections.<DomainRequirement>emptyList()),
-				CredentialsMatchers.withId(credentialID));
+		ConjurSecretCredentials credential = null;
 
-		if(credential == null && context != null) {
-            getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-            Item folder = Jenkins.getInstance().getItemByFullName(context.getParent().getParent().getFullName());
-			credential = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(credentialID));
+		Channel channel = Channel.current();
+
+		if (channel == null) {
+			credential = CredentialsMatchers
+					.firstOrNull(
+							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
+									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+							CredentialsMatchers.withId(credentialID));
+
+			credential = credentialFromContextIfNeeded(credential, credentialID, context);
+		} else {
+			credential = (ConjurSecretCredentials) ConjurAPIUtils.objectFromMaster(channel,
+					new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
 		}
+
 
 		if (credential == null) {
 			String contextLevel = String.format("Unable to find credential at %s", 
