@@ -87,13 +87,7 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 			credential = credentialFromContextIfNeeded(credential, credentialID, context);
 		} else {
-			// Running from a slave, Get credential entry from master
-			try {
-				credential = channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
-			} catch (Exception e) {
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
+			credential = ConjurAPIUtils.credentialFromMaster(channel, credentialID);
 		}
 
 

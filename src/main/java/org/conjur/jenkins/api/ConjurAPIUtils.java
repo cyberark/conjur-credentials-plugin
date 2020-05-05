@@ -54,7 +54,6 @@ public class ConjurAPIUtils {
 			try {
 				certificate = channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
 			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
 				getLogger().log(Level.INFO, "Exception getting global configuration", e);
 				e.printStackTrace();
 			}
@@ -219,6 +218,17 @@ public class ConjurAPIUtils {
 
 			return credential;
 		}
+	}
+
+	public static ConjurSecretCredentials credentialFromMaster(Channel channel, String credentialID) {
+		// Running from a slave, Get credential entry from master
+		try {
+			return channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
+		} catch (Exception e) {
+			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	static class NewSecretFromString extends SlaveToMasterCallable<Secret, IOException> {
