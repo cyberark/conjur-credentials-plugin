@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 
 /**
@@ -31,6 +32,17 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
 	}
 
+	public static GlobalConjurConfiguration globalConfigurationFromMaster(Channel channel) {
+		GlobalConjurConfiguration result = null;
+		try {
+			result = channel.call(new ConjurAPIUtils.NewGlobalConfiguration());
+		} catch (IOException | InterruptedException e) {
+			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			e.printStackTrace();
+		}
+		return result;
+	}
+
 	/** @return the singleton instance */
 	@Nonnull
 	public static GlobalConjurConfiguration get() {
@@ -40,35 +52,13 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		if (channel == null) {
 			result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 		} else {
-			try {
-				result = channel.call(new NewGlobalConfiguration());
-			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
+			result = globalConfigurationFromMaster(channel);
 		}
 		if (result == null) {
 			throw new IllegalStateException();
 		}
 		return result;
 	}
-
-	static class NewGlobalConfiguration extends SlaveToMasterCallable<GlobalConjurConfiguration, IOException> {
-		/**
-		 * Standardize serialization.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public GlobalConjurConfiguration call() throws IOException {
-			GlobalConjurConfiguration result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-			return result;
-		}
-	}
-
 
 	public GlobalConjurConfiguration() {
 		// When Jenkins is restarted, load any saved configuration from disk.

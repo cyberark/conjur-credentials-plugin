@@ -23,9 +23,11 @@ import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 
 import hudson.remoting.Channel;
 import hudson.security.ACL;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.security.SlaveToMasterCallable;
 import okhttp3.OkHttpClient;
@@ -163,5 +165,19 @@ public class ConjurAPIUtils {
 		}
 	}
 
+	public static class NewGlobalConfiguration extends SlaveToMasterCallable<GlobalConjurConfiguration, IOException> {
+		/**
+		 * Standardize serialization.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public GlobalConjurConfiguration call() throws IOException {
+			GlobalConjurConfiguration result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+			return result;
+		}
+	}
 
 }
