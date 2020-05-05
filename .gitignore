@@ -13,3 +13,4 @@ target/
 .factorypath
 .DS_Store
 .factorypath
+bin/
