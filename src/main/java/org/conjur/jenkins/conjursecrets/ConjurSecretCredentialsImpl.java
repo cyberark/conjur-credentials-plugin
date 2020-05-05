@@ -129,6 +129,24 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 		}
 	}
 
+	static Secret secretFromString(String secretString) {
+		Channel channel = Channel.current();
+		Secret secretResult = null;
+
+		if (channel == null) {
+			secretResult = Secret.fromString(result);
+		} else {
+			try {
+				secretResult = channel.call(new NewSecretFromString(result));
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				getLogger().log(Level.INFO, "Exception getting global configuration", e);
+				e.printStackTrace();
+			}
+		}
+		return secretResult;
+	}
+
 	public Secret getSecret() {
 		String result = "";
 		try {
@@ -144,24 +162,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
 
-		Channel channel = Channel.current();
-
-		Secret secretResult = null;
-
-		if (channel == null) {
-			secretResult = Secret.fromString(result);
-		} else {
-			try {
-				secretResult = channel.call(new NewSecretFromString(result));
-			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				getLogger().log(Level.INFO, "Exception getting global configuration", e);
-				e.printStackTrace();
-			}
-
-		}
-
-		return secretResult;
+		return secretFromString(result);
 	}
 
 	public String getVariablePath() {
