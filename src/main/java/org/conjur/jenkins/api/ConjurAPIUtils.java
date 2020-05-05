@@ -35,11 +35,8 @@ public class ConjurAPIUtils {
 	static Logger getLogger() {
 		return Logger.getLogger(ConjurAPIUtils.class.getName());
 	}
-	
-	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
 
-		OkHttpClient client = null;
-
+	static CertificateCredentials certificateFromConfiguration(ConjurConfiguration configuration) {
 		Channel channel = Channel.current();
 
 		CertificateCredentials certificate = null;
@@ -58,7 +55,14 @@ public class ConjurAPIUtils {
 				e.printStackTrace();
 			}
 		}
-		
+		return certificate;
+	}
+	
+	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
+
+		OkHttpClient client = null;
+		CertificateCredentials certificate = certificateFromConfiguration(configuration);
+
 		if (certificate != null) {
 			try {
 
