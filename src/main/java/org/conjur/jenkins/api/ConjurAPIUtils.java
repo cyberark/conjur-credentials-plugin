@@ -44,7 +44,7 @@ public class ConjurAPIUtils {
 		try {
 			return channel.call(new ConjurAPIUtils.NewCertificateCredentials(configuration));
 		} catch (IOException | InterruptedException e) {
-			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			getLogger().log(Level.INFO, "Exception getting Certificate from Master", e);
 			e.printStackTrace();
 		}
 
@@ -231,7 +231,7 @@ public class ConjurAPIUtils {
 		try {
 			return channel.call(new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
 		} catch (Exception e) {
-			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			getLogger().log(Level.INFO, "Exception getting credential from Master", e);
 			e.printStackTrace();
 		}
 		return null;
@@ -241,7 +241,7 @@ public class ConjurAPIUtils {
 		try {
 			return channel.call(new ConjurAPIUtils.NewSecretFromString(secretString));
 		} catch (IOException | InterruptedException e) {
-			getLogger().log(Level.INFO, "Exception getting global configuration", e);
+			getLogger().log(Level.INFO, "Exception getting secret from Master", e);
 			e.printStackTrace();
 		}
 		return null;
