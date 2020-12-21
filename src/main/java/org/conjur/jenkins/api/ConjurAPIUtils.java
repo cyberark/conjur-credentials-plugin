@@ -46,6 +46,7 @@ public class ConjurAPIUtils {
 		CertificateCredentials certificate = null;
 
 		if (channel == null) {
+			if (configuration.getCertificateCredentialID() == null ) { return null;}
 			certificate = CredentialsMatchers.firstOrNull(
 					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
 							Collections.<DomainRequirement>emptyList()),
