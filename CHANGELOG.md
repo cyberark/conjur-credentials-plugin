@@ -8,13 +8,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Incorporated changes for null certificate on slave
 
 ##[1.0.2] - 2020-05-05
+
+### Added
 - Included changes to allow GIT plugin to retrieve credentials from slaves
+
+### Removed
 - Removed binaries deliverables, to use artifactory to deliver binaries
 
-##[0.7.0] - 2019-09-27
+## 0.7.0 - 2019-09-27
+
 ### Added
 - Added Support for SSH Private Key
 
-
-[Unreleased]: https://github.com/cyberark/conjur-credentials-plugin/compare/v0.7...HEAD
-[0.7.0]: https://github.com/cyberark/conjur-credentials-plugin/compare/v0.5...v0.7
+[Unreleased]: https://github.com/cyberark/conjur-credentials-plugin/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/cyberark/conjur-credentials-plugin/compare/v0.7.0...v1.0.2
