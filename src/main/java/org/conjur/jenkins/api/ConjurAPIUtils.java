@@ -46,12 +46,11 @@ public class ConjurAPIUtils {
 		CertificateCredentials certificate = null;
 
 		if (channel == null) {
-			if (configuration.getCertificateCredentialID() != null ) {
-				certificate = CredentialsMatchers.firstOrNull(
-					CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
-							Collections.<DomainRequirement>emptyList()),
-					CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
-			}
+			if (configuration.getCertificateCredentialID() == null ) { return null; }
+			certificate = CredentialsMatchers.firstOrNull(
+				CredentialsProvider.lookupCredentials(CertificateCredentials.class, Jenkins.get(), ACL.SYSTEM,
+						Collections.<DomainRequirement>emptyList()),
+				CredentialsMatchers.withId(configuration.getCertificateCredentialID()));
 		} else {
 			certificate = (CertificateCredentials) objectFromMaster(channel,
 					new ConjurAPIUtils.NewCertificateCredentials(configuration));
