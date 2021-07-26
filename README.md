@@ -67,11 +67,11 @@ node {
    stage('Work') {
       withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', 
                                               variable: 'SECRET')]) {
-         echo "Hello World $SECRET"
+         echo 'Hello World $SECRET'
       }
    }
    stage('Results') {
-      echo "Finished!"
+      echo 'Finished!'
    }
 }
 ```
