@@ -4,22 +4,6 @@ This Conjur plugin securely provides credentials that are stored in Conjur to Je
 
 ## Installation
 
-### From Source
-
-To build the plugin from source, Maven is required. Build it like this:
-
-```bash
-git clone {repo}
-cd conjur-credentials-plugin
-mvn clean install
-```
-
-### From Binaries
-
-As another option, you can use the latest .hpi found under the binaries folder.
-
-### Install in Jenkins
-
 When you have the .hpi file, log into Jenkins as an administrator. Then go to **Jenkins** -> **Manage Jenkins** -> **Manage Plugins** -> **Advanced**.
 In the **Upload Plugin** section, browse for the .hpi and upload it to Jenkins:
 
@@ -78,16 +62,16 @@ The secrets that you want to obtain from Conjur must be defined explicitly. Use 
 To reference Conjur secrets in a Jenkins script, use `withCredentials` and the symbol `conjurSecretCredential`.  
 Here is an example showing how to fetch the secret from a Jenkins job pipeline definition.
 
-```yml
+```groovy
 node {
    stage('Work') {
       withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', 
                                               variable: 'SECRET')]) {
-         echo "Hello World $SECRET"
+         echo 'Hello World $SECRET'
       }
    }
    stage('Results') {
-      echo "Finished!"
+      echo 'Finished!'
    }
 }
 ```
