@@ -2,16 +2,10 @@
 
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
 
-## Installation
+## Reference
 
-When you have the .hpi file, log into Jenkins as an administrator. Then go to **Jenkins** -> **Manage Jenkins** -> **Manage Plugins** -> **Advanced**.
-In the **Upload Plugin** section, browse for the .hpi and upload it to Jenkins:
-
-![Upload Plugin](docs/images/UploadPlugin-Jenkins.png)
-
-After installing the plugin, restart Jenkins:
-
-![Install Plugin](docs/images/Plugin-Installing.png)
+[SECURING SECRETS ACROSS THE CI/CD PIPELINE](https://www.conjur.org/use-cases/ci-cd-pipelines/)
+[CI/CD Servers Know All Your Plumbing Secrets](https://www.conjur.org/blog/ci-cd-servers-know-all-your-plumbing-secrets/)
 
 ## Usage
 
