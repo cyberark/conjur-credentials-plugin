@@ -56,16 +56,16 @@ The secrets that you want to obtain from Conjur must be defined explicitly. Use 
 To reference Conjur secrets in a Jenkins script, use `withCredentials` and the symbol `conjurSecretCredential`.  
 Here is an example showing how to fetch the secret from a Jenkins job pipeline definition.
 
-```yml
+```groovy
 node {
    stage('Work') {
       withCredentials([conjurSecretCredential(credentialsId: 'DB_PASSWORD', 
                                               variable: 'SECRET')]) {
-         echo "Hello World $SECRET"
+         echo 'Hello World $SECRET'
       }
    }
    stage('Results') {
-      echo "Finished!"
+      echo 'Finished!'
    }
 }
 ```

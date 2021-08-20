@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##[1.0.4] - 2021-07-12
 - Incorporated changes for null certificate on slave
+- Brought fixes for core cyberark/conjur-credentials-plugin
+- Release in plugins
 
 ##[1.0.2] - 2020-05-05
 
