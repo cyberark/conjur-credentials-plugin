@@ -17,3 +17,5 @@ bin/
 .factorypath
 .factorypath
 .factorypath
+release.properties
+release.properties
