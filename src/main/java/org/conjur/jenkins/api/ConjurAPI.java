@@ -24,11 +24,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
+import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
+import org.conjur.jenkins.jwtauth.JwtToken;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
 import hudson.model.Run;
 import hudson.remoting.Channel;
 import hudson.security.ACL;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -92,13 +95,23 @@ public class ConjurAPI {
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, availableCredentials, context);
 
+		Request request = null;
 		if (conjurAuthn.login != null && conjurAuthn.apiKey != null) {
-			LOGGER.log(Level.INFO, "Authenticating with Conjur");
-			Request request = new Request.Builder()
-					.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
-							conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
-					.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
+			LOGGER.log(Level.INFO, "Authenticating with Conjur (authn)");
+			request = new Request.Builder()
+				.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
+						conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
+				.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
+		} else if (conjurAuthn.authnPath != null & conjurAuthn.apiKey != null) {
+			LOGGER.log(Level.INFO, "Authenticating with Conjur (JWT)");
+			request = new Request.Builder()
+				.url(String.format("%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
+						conjurAuthn.account))
+				.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 
+		}
+
+		if (request != null) {
 			Response response = client.newCall(request).execute();
 			resultingToken = Base64.getEncoder().withoutPadding()
 					.encodeToString(response.body().string().getBytes("UTF-8"));
@@ -149,62 +162,71 @@ public class ConjurAPI {
 		return conjurAuthn;
 	}
 
-	private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
-		// sign using the private key
-		LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
-		try {
-			Signature sig = Signature.getInstance("SHA256withRSA");
-			sig.initSign(privateKey);
-			sig.update(challenge.getBytes("UTF8"));
-			String signatureString = Base64.getEncoder().encodeToString(sig.sign());
-			LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
-			return signatureString;
-		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+	// private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
+	// 	// sign using the private key
+	// 	LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
+	// 	try {
+	// 		Signature sig = Signature.getInstance("SHA256withRSA");
+	// 		sig.initSign(privateKey);
+	// 		sig.update(challenge.getBytes("UTF8"));
+	// 		String signatureString = Base64.getEncoder().encodeToString(sig.sign());
+	// 		LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
+	// 		return signatureString;
+	// 	} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
+	// 		e.printStackTrace();
+	// 	} catch (UnsupportedEncodingException e) {
+	// 		e.printStackTrace();
+	// 	}
+	// 	return null;
+	// }
 
-	private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature,
-			String keyAlgorithm) {
-		// Build the response Body
-		Map<String, String> body = new HashMap<String, String>();
-		body.put("buildNumber", buildNumber);
-		body.put("signature", signature);
-		body.put("keyAlgorithm", keyAlgorithm);
-		if (prefix != null && prefix.length() > 0) {
-			body.put("jobProperty_hostPrefix", prefix);
-		}
+	// private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature,
+	// 		String keyAlgorithm) {
+	// 	// Build the response Body
+	// 	Map<String, String> body = new HashMap<String, String>();
+	// 	body.put("buildNumber", buildNumber);
+	// 	body.put("signature", signature);
+	// 	body.put("keyAlgorithm", keyAlgorithm);
+	// 	if (prefix != null && prefix.length() > 0) {
+	// 		body.put("jobProperty_hostPrefix", prefix);
+	// 	}
 
-		ObjectMapper objectMapper = new ObjectMapper();
+	// 	ObjectMapper objectMapper = new ObjectMapper();
 
-		try {
-			return objectMapper.writeValueAsString(body);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+	// 	try {
+	// 		return objectMapper.writeValueAsString(body);
+	// 	} catch (IOException e) {
+	// 		e.printStackTrace();
+	// 	}
+	// 	return null;
+	// }
 
 	private static void setConjurAuthnForJITCredentialAccess(Run<?, ?> context, ConjurAuthnInfo conjurAuthn) {
 
-		ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
-		if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
-			String jobName = context.getParent().getFullName();
-			int buildNumber = context.getNumber();
-			LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
-			String prefix = conjurJobConfig.getHostPrefix();
-			LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
-			RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
-			LOGGER.log(Level.INFO, privateKey.getAlgorithm());
-			conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-			conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
-			conjurAuthn.apiKey = apiKeyForAuthentication(prefix, String.valueOf(buildNumber),
-					signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
-			LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
+		String token = JwtToken.getToken(context);
+		GlobalConjurConfiguration globalconfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+
+		if (token != null && globalconfig != null) {
+			conjurAuthn.login = null;
+			conjurAuthn.authnPath = globalconfig.getAuthWebServiceId();
+			conjurAuthn.apiKey = "jwt=" + token;
 		}
+		
+		// ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
+		// if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
+		// 	String jobName = context.getParent().getFullName();
+		// 	int buildNumber = context.getNumber();
+		// 	LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
+		// 	String prefix = conjurJobConfig.getHostPrefix();
+		// 	LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
+		// 	RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
+		// 	LOGGER.log(Level.INFO, privateKey.getAlgorithm());
+		// 	conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
+		// 	conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
+		// 	conjurAuthn.apiKey = apiKeyForAuthentication(prefix, String.valueOf(buildNumber),
+		// 			signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
+		// 	LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
+		// }
 	}
 
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,

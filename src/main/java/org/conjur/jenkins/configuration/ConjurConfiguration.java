@@ -52,7 +52,6 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	private String applianceURL;
 	private String account;
 	private String credentialID;
-
 	private String certificateCredentialID;
 
 	public ConjurConfiguration() {

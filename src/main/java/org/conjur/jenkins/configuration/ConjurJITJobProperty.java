@@ -5,9 +5,6 @@ import hudson.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-/**
- * Create a job property for use with Datadog plugin.
- */
 public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
     
 //    private static final Logger LOGGER = Logger.getLogger(ConjurJITJobProperty.class.getName());

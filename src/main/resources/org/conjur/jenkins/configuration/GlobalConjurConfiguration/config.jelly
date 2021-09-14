@@ -4,4 +4,15 @@
     <f:section title="${%Conjur Appliance}">
         <f:property field="conjurConfiguration" header="${%Conjur Configuration}"/>
     </f:section>
+    <f:section title="${%Conjur JWT Authentication}">
+        <f:entry title="${%Enable JWT Key Set endpoint?}" description="If checked, the endpoint for jwt-auth/jwkset will return the JWT KeySet">
+            <f:checkbox name="enableJWKS" field="enableJWKS" default="false" checked="${enableJWKS}"/>
+        </f:entry>
+        <f:entry title="${%Auth WebService ID}">
+            <f:textbox field="authWebServiceId" name="authWebServiceId"/>
+        </f:entry>
+        <f:entry title="${%JWT Audience}">
+            <f:textbox field="jwtAudience" name="jwtAudience"/>
+        </f:entry>
+    </f:section>
 </j:jelly>

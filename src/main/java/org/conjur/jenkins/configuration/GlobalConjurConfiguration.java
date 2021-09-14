@@ -24,6 +24,9 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	private static final long serialVersionUID = 1L;
 
 	private ConjurConfiguration conjurConfiguration;
+	private Boolean enableJWKS = false;
+	private String authWebServiceId = "";
+	private String jwtAudience = "";
 
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
@@ -56,9 +59,39 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		return conjurConfiguration;
 	}
 
+	public Boolean getEnableJWKS() {
+		return enableJWKS;
+	}
+
+	public String getAuthWebServiceId() {
+		return authWebServiceId;
+	}
+
+	@DataBoundSetter
+	public void setAuthWebServiceId(String authWebServiceId) {
+		this.authWebServiceId = authWebServiceId;
+		save();
+	}
+
+	public String getJwtAudience() {
+		return jwtAudience;
+	}
+
+	@DataBoundSetter
+	public void setJwtAudience(String jwtAudience) {
+		this.jwtAudience = jwtAudience;
+		save();
+	}
+
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		this.conjurConfiguration = conjurConfiguration;
+		save();
+	}
+
+	@DataBoundSetter
+	public void setEnableJWKS(Boolean enableJWKS) {
+		this.enableJWKS = enableJWKS;
 		save();
 	}
 
