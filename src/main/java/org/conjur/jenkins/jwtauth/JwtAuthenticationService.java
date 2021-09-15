@@ -23,21 +23,6 @@ public abstract class JwtAuthenticationService implements UnprotectedRootAction 
         return "jwtauth";
     }
 
-
-    /**
-     * Gives JWT token for authenticated user. See https://tools.ietf.org/html/rfc7519.
-     *
-     * @param expiryTimeInMins token expiry time. Default 30 min.
-     * @param maxExpiryTimeInMins max token expiry time. Default expiry time is 8 hours (480 mins)
-     *
-     * @return JWT if there is authenticated user or if  anonymous user has at least READ permission, otherwise 401
-     *         error code is returned
-     */
-    @GET
-    @WebMethod(name = "token")
-    public abstract JwtToken getToken(@Nullable @QueryParameter("expiryTimeInMins") Integer expiryTimeInMins,
-                                          @Nullable  @QueryParameter("maxExpiryTimeInMins") Integer maxExpiryTimeInMins);
-
     /**
      * Binds Json web key to the URL space.
      *
@@ -63,6 +48,6 @@ public abstract class JwtAuthenticationService implements UnprotectedRootAction 
      * @see <a href="https://tools.ietf.org/html/rfc7517#page-10">the JWK Set Format spec</a>
      */
     @GET
-    @WebMethod(name = "conjur-jwk-set") // we could not name this endpoint /jwks as it would be shadowing the pre-existing one
+    @WebMethod(name = "conjur-jwk-set")
     public abstract String getJwkSet() throws HttpRequestMethodNotSupportedException;
 }
