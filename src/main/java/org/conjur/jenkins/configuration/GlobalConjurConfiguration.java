@@ -27,6 +27,8 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	private Boolean enableJWKS = false;
 	private String authWebServiceId = "";
 	private String jwtAudience = "";
+	private long keyLifetimeInMinutes = 60;
+	private long tokenDurarionInSeconds = 120;
 
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
@@ -80,6 +82,26 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	@DataBoundSetter
 	public void setJwtAudience(String jwtAudience) {
 		this.jwtAudience = jwtAudience;
+		save();
+	}
+
+	public long getKeyLifetimeInMinutes() {
+		return keyLifetimeInMinutes;
+	}
+
+	@DataBoundSetter
+	public void setKeyLifetimeInMinutes(long keyLifetimeInMinutes) {
+		this.keyLifetimeInMinutes = keyLifetimeInMinutes;
+		save();
+	}
+
+	public long getTokenDurarionInSeconds() {
+		return tokenDurarionInSeconds;
+	}
+
+	@DataBoundSetter
+	public void setTokenDurarionInSeconds(long tokenDurarionInSeconds) {
+		this.tokenDurarionInSeconds = tokenDurarionInSeconds;
 		save();
 	}
 

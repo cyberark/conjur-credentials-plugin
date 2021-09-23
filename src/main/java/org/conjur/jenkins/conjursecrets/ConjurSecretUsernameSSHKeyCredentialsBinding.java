@@ -18,6 +18,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 

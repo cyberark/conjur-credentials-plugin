@@ -40,25 +40,25 @@ public class JwtAuthenticationServiceImpl extends JwtAuthenticationService {
             throw new HttpRequestMethodNotSupportedException("conjur-jwk-set");
         }
 
-        RSAPublicKey k = InstanceIdentity.get().getPublic();
+        // RSAPublicKey k = InstanceIdentity.get().getPublic();
 
-        JSONObject jwks = new JSONObject();
-        JSONArray keys = new JSONArray();
+        // JSONObject jwks = new JSONObject();
+        // JSONArray keys = new JSONArray();
 
-        JSONObject jwk = new JSONObject();
-        jwk.put("kty", "RSA");
-        jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
-        jwk.put("kid", "1234567890");
-        jwk.put("use", "sig");
-        jwk.put("key_ops", Collections.singleton("verify"));
-        jwk.put("n", Base64.getUrlEncoder().withoutPadding().encodeToString(k.getModulus().toByteArray()));
-        jwk.put("e", Base64.getUrlEncoder().withoutPadding().encodeToString(k.getPublicExponent().toByteArray()));
+        // JSONObject jwk = new JSONObject();
+        // jwk.put("kty", "RSA");
+        // jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
+        // jwk.put("kid", "1234567890");
+        // jwk.put("use", "sig");
+        // jwk.put("key_ops", Collections.singleton("verify"));
+        // jwk.put("n", Base64.getUrlEncoder().withoutPadding().encodeToString(k.getModulus().toByteArray()));
+        // jwk.put("e", Base64.getUrlEncoder().withoutPadding().encodeToString(k.getPublicExponent().toByteArray()));
 
-        keys.put(jwk);
+        // keys.put(jwk);
 
-        jwks.put("keys", keys);
-        LOGGER.log(Level.INFO, "returning " + jwk.toString(4));
-        return jwks.toString(4);
+        // jwks.put("keys", keys);
+        // LOGGER.log(Level.INFO, "returning " + jwk.toString(4));
+        return JwtToken.getJwkset().toString(4);
     }
 
     @Override

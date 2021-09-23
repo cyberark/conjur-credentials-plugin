@@ -5,7 +5,7 @@
         <f:property field="conjurConfiguration" header="${%Conjur Configuration}"/>
     </f:section>
     <f:section title="${%Conjur JWT Authentication}">
-        <f:entry title="${%Enable JWT Key Set endpoint?}" description="If checked, the endpoint for jwt-auth/jwkset will return the JWT KeySet">
+        <f:entry title="${%Enable JWT Key Set endpoint?}" description="If checked, the endpoint for jwtauth/conjur-jwk-set will return the JWT KeySet">
             <f:checkbox name="enableJWKS" field="enableJWKS" default="false" checked="${enableJWKS}"/>
         </f:entry>
         <f:entry title="${%Auth WebService ID}">
@@ -13,6 +13,12 @@
         </f:entry>
         <f:entry title="${%JWT Audience}">
             <f:textbox field="jwtAudience" name="jwtAudience"/>
+        </f:entry>
+        <f:entry title="${%Signing Key Lifetime In Minutes}">
+            <f:textbox field="keyLifetimeInMinutes" name="keyLifetimeInMinutes"/>
+        </f:entry>
+        <f:entry title="${%JWT Token Durarion In Seconds}">
+            <f:textbox field="tokenDurarionInSeconds" name="tokenDurarionInSeconds"/>
         </f:entry>
     </f:section>
 </j:jelly>

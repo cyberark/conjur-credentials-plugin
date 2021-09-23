@@ -112,7 +112,7 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 																ConjurConfiguration conjurConfiguration,
 																Run<?, ?> context) {
 
-		getLogger().log(Level.INFO, "Getting Secret with CredentialID: {0}", credentialID);
+		getLogger().log(Level.INFO, "Getting Secret with CredentialID: {0}  context: " + context, credentialID);
 		ConjurSecretCredentials credential = credentialWithID(credentialID, context);
 		
 		return credential.secretWithConjurConfigAndContext(conjurConfiguration, context);

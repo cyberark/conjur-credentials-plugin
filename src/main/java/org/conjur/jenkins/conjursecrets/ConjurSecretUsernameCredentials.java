@@ -4,6 +4,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.util.Secret;
 

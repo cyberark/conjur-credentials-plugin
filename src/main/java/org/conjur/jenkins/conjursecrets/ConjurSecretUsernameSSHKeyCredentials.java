@@ -9,6 +9,7 @@ import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 
+import hudson.model.Item;
 import hudson.model.Run;
 
 @NameWith(value = ConjurSecretUsernameSSHKeyCredentials.NameProvider.class, priority = 1)

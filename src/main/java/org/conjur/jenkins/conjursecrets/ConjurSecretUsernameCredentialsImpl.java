@@ -14,6 +14,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.model.Item;
 import hudson.util.Secret;
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)

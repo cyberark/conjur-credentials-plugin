@@ -8,15 +8,23 @@ import java.util.logging.Logger;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BaseSSHUser;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
+import hudson.model.Item;
 import hudson.model.Run;
+import hudson.security.ACL;
 import hudson.util.Secret;
+import hudson.util.ListBoxModel;
+
 
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
 implements ConjurSecretUsernameSSHKeyCredentials {
@@ -85,6 +93,12 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 		public String getDisplayName() {
 			return ConjurSecretUsernameSSHKeyCredentialsImpl.getDescriptorDisplayName();
 		}
+
+		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
+			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
+					URIRequirementBuilder.fromUri(uri).build());
+		}
+	
 
 	}
 
