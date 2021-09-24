@@ -2,14 +2,14 @@ package org.conjur.jenkins.conjursecrets;
 
 import javax.annotation.Nonnull;
 
-import org.conjur.jenkins.configuration.ConjurConfiguration;
-
+import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
-import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 
-import hudson.model.Run;
+import org.conjur.jenkins.configuration.ConjurConfiguration;
+
+import hudson.model.ModelObject;
 
 @NameWith(value = ConjurSecretUsernameSSHKeyCredentials.NameProvider.class, priority = 1)
 
@@ -17,7 +17,8 @@ public interface ConjurSecretUsernameSSHKeyCredentials extends SSHUserPrivateKey
 
 	String getDisplayName();
 
-	void setContext(Run<?, ?> context);
+	void setContext(ModelObject context);
+	void setStoreContext(ModelObject context);
 
 	String getPrivateKey();
 

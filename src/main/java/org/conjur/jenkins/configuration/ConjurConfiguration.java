@@ -1,6 +1,9 @@
 package org.conjur.jenkins.configuration;
 
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -26,7 +29,7 @@ import jenkins.model.Jenkins;
 
 public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfiguration> implements Serializable {
 
-	
+	private static final Logger LOGGER = Logger.getLogger(ConjurConfiguration.class.getName());
 
 	@Extension
 	public static class DescriptorImpl extends Descriptor<ConjurConfiguration> {
@@ -52,8 +55,8 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	private String applianceURL;
 	private String account;
 	private String credentialID;
-
 	private String certificateCredentialID;
+	private String ownerFullName;
 
 	public ConjurConfiguration() {
 	}
@@ -94,6 +97,11 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 		return credentialID;
 	}
 
+	public String getOwnerFullName() {
+		return ownerFullName;
+	}
+
+
 	/**
 	 * Together with {@link #getAccount}, binds to entry in {@code config.jelly}.
 	 * 
@@ -125,6 +133,10 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 	@DataBoundSetter
 	public void setCredentialID(String credentialID) {
 		this.credentialID = credentialID;
+	}
+
+	public void setOwnerFullName(String ownerFullName) {
+		this.ownerFullName = ownerFullName;
 	}
 
 	private static ListBoxModel fillCredentialIDItemsWithClass(Item item, String credentialsId, Class<? extends StandardCredentials> credentialClass) {

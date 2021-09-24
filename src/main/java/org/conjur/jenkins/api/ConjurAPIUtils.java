@@ -203,16 +203,6 @@ public class ConjurAPIUtils {
 									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
 							CredentialsMatchers.withId(this.credentialID));
 
-			// if (credential == null && context != null) {
-			// 	getLogger().log(Level.INFO, "NOT FOUND at Jenkins Instance Level!");
-			// 	Item folder = Jenkins.get().getItemByFullName(context.getParent().getParent().getFullName());
-			// 	credential = CredentialsMatchers
-			// 			.firstOrNull(
-			// 					CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
-			// 							Collections.<DomainRequirement>emptyList()),
-			// 					CredentialsMatchers.withId(credentialID));
-			// }
-
 			return credential;
 		}
 	}
@@ -222,7 +212,7 @@ public class ConjurAPIUtils {
 		try {
 			return channel.call(callable);
 		} catch (Exception e) {
-			getLogger().log(Level.INFO, "Exception getting object from Master", e);
+			getLogger().log(Level.WARNING, "Exception getting object from Master", e);
 			e.printStackTrace();
 		}
 		return null;

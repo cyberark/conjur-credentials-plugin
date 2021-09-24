@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.conjur.jenkins.credentials.ConjurCredentialStore;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
@@ -57,7 +58,12 @@ public class ConjurSecretUsernameSSHKeyCredentialsBinding extends MultiBinding<C
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
 
-		LOGGER.log(Level.INFO, "Binding UserName and SSHKey");
+		LOGGER.log(Level.FINE, "Binding UserName and SSHKey");
+
+		ConjurCredentialStore store = ConjurCredentialStore.getAllStores().get(String.valueOf(build.getParent().hashCode()));
+		if (store != null) {
+			store.getProvider().getStore(build);
+		}
 
 		ConjurSecretUsernameSSHKeyCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
@@ -82,13 +88,13 @@ public class ConjurSecretUsernameSSHKeyCredentialsBinding extends MultiBinding<C
 
 	@DataBoundSetter
 	public void setSecretVariable(String secretVariable) {
-		LOGGER.log(Level.INFO, "Setting Secret variable to {0}", secretVariable);
+		LOGGER.log(Level.FINE, "Setting Secret variable to {0}", secretVariable);
 		this.secretVariable = secretVariable;
 	}
 
 	@DataBoundSetter
 	public void setUsernameVariable(String usernameVariable) {
-		LOGGER.log(Level.INFO, "Setting Username variable to {0}", usernameVariable);
+		LOGGER.log(Level.FINE, "Setting Username variable to {0}", usernameVariable);
 		this.usernameVariable = usernameVariable;
 	}
 

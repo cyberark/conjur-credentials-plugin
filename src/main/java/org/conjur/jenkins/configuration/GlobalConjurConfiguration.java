@@ -24,6 +24,15 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	private static final long serialVersionUID = 1L;
 
 	private ConjurConfiguration conjurConfiguration;
+	private Boolean enableJWKS = false;
+	private String authWebServiceId = "";
+	private String jwtAudience = "";
+	private long keyLifetimeInMinutes = 60;
+	private long tokenDurarionInSeconds = 120;
+	private Boolean enableContextAwareCredentialStore = false;
+	private String identityFormatFieldsFromToken = "jenkins_name";
+	private String identityFieldsSeparator = "-";
+	private String identityFieldName = "identity";
 
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
@@ -56,9 +65,99 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		return conjurConfiguration;
 	}
 
+	public Boolean getEnableJWKS() {
+		return enableJWKS;
+	}
+
+	public Boolean getEnableContextAwareCredentialStore() {
+		return enableContextAwareCredentialStore;
+	}
+
+	public String getAuthWebServiceId() {
+		return authWebServiceId;
+	}
+
+	@DataBoundSetter
+	public void setAuthWebServiceId(String authWebServiceId) {
+		this.authWebServiceId = authWebServiceId;
+		save();
+	}
+
+	public String getidentityFieldName() {
+		return identityFieldName;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFieldName(String identityFieldName) {
+		this.identityFieldName = identityFieldName;
+		save();
+	}
+
+	public String getIdentityFormatFieldsFromToken() {
+		return identityFormatFieldsFromToken;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFormatFieldsFromToken(String identityFormatFieldsFromToken) {
+		this.identityFormatFieldsFromToken = identityFormatFieldsFromToken;
+		save();
+	}
+
+	public String getIdentityFieldsSeparator() {
+		return identityFieldsSeparator;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFieldsSeparator(String identityFieldsSeparator) {
+		this.identityFieldsSeparator = identityFieldsSeparator;
+		save();
+	}
+
+	public String getJwtAudience() {
+		return jwtAudience;
+	}
+
+	@DataBoundSetter
+	public void setJwtAudience(String jwtAudience) {
+		this.jwtAudience = jwtAudience;
+		save();
+	}
+
+	public long getKeyLifetimeInMinutes() {
+		return keyLifetimeInMinutes;
+	}
+
+	@DataBoundSetter
+	public void setKeyLifetimeInMinutes(long keyLifetimeInMinutes) {
+		this.keyLifetimeInMinutes = keyLifetimeInMinutes;
+		save();
+	}
+
+	public long getTokenDurarionInSeconds() {
+		return tokenDurarionInSeconds;
+	}
+
+	@DataBoundSetter
+	public void setTokenDurarionInSeconds(long tokenDurarionInSeconds) {
+		this.tokenDurarionInSeconds = tokenDurarionInSeconds;
+		save();
+	}
+
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		this.conjurConfiguration = conjurConfiguration;
+		save();
+	}
+
+	@DataBoundSetter
+	public void setEnableJWKS(Boolean enableJWKS) {
+		this.enableJWKS = enableJWKS;
+		save();
+	}
+
+	@DataBoundSetter
+	public void setEnableContextAwareCredentialStore(Boolean enableContextAwareCredentialStore) {
+		this.enableContextAwareCredentialStore = enableContextAwareCredentialStore;
 		save();
 	}
 

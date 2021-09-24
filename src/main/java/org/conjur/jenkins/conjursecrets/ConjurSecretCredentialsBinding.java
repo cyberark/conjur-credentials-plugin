@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.conjur.jenkins.credentials.ConjurCredentialStore;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
@@ -52,6 +53,11 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 	@Override
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
+		LOGGER.log(Level.FINE, "**** binding **** : " + build);
+		ConjurCredentialStore store = ConjurCredentialStore.getAllStores().get(String.valueOf(build.getParent().hashCode()));
+		if (store != null) {
+			store.getProvider().getStore(build);
+		}
 		ConjurSecretCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
 
@@ -65,7 +71,7 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 
 	@DataBoundSetter
 	public void setVariable(String variable) {
-		LOGGER.log(Level.INFO, "Setting variable to {0}", variable);
+		LOGGER.log(Level.FINE, "Setting variable to {0}", variable);
 		this.variable = variable;
 	}
 

@@ -1,13 +1,16 @@
 package org.conjur.jenkins.configuration;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
 
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+
 import hudson.Extension;
+import hudson.model.Item;
+import jenkins.model.Jenkins;
+
 
 public class FolderConjurConfiguration extends AbstractFolderProperty<AbstractFolder<?>> {
 
@@ -41,4 +44,9 @@ public class FolderConjurConfiguration extends AbstractFolderProperty<AbstractFo
 	@Extension
 	public static class DescriptorImpl extends AbstractFolderPropertyDescriptor {
 	}
+
+	public Item getItem() {
+		return Jenkins.get().getItemByFullName(this.owner.getFullName());
+	}
+
 }

@@ -1,13 +1,15 @@
 package org.conjur.jenkins.configuration;
 
-import hudson.Extension;
-import hudson.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-/**
- * Create a job property for use with Datadog plugin.
- */
+import hudson.Extension;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
+import jenkins.model.Jenkins;
+
 public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
     
 //    private static final Logger LOGGER = Logger.getLogger(ConjurJITJobProperty.class.getName());
@@ -23,8 +25,7 @@ public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
 	// 	<f:textbox field="hostPrefix" name="hostPrefix"/>
 	// </f:entry>
 
-
-    private static final String DISPLAY_NAME = "Conjur Just-In-Time Access";
+	private static final String DISPLAY_NAME = "Conjur Just-In-Time Access";
 
 	private Boolean inheritFromParent = true;
     private Boolean useJustInTime = false;
@@ -75,7 +76,12 @@ public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
 	}
 
     public String getHostPrefix() {
+
         return hostPrefix;
+	}
+
+	public Item getItem() {
+		return Jenkins.get().getItemByFullName(this.owner.getFullName());
 	}
 
 	@DataBoundSetter
