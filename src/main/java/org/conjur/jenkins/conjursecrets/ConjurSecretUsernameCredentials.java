@@ -4,8 +4,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 
-import hudson.model.Item;
-import hudson.model.Run;
+import hudson.model.ModelObject;
 import hudson.util.Secret;
 
 // @NameWith(value = ConjurSecretUsernameCredentials.NameProvider.class, priority = 1)
@@ -14,7 +13,7 @@ public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswor
 
 	String getDisplayName();
 
-	void setContext(Run<?, ?> context);
+	void setContext(ModelObject context);
 
 	Secret getSecret();
 

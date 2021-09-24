@@ -1,15 +1,13 @@
 package org.conjur.jenkins.jwtauth;
 
-import hudson.model.UnprotectedRootAction;
+import java.security.interfaces.RSAPublicKey;
+
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.WebMethod;
 import org.kohsuke.stapler.verb.GET;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
-import java.security.interfaces.RSAPublicKey;
-
-import javax.annotation.Nullable;
+import hudson.model.UnprotectedRootAction;
 
 /**
  * JWT endpoint resource. Provides functionality to get JWT token and also provides JWK endpoint to get

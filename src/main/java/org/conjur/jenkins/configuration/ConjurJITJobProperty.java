@@ -1,14 +1,14 @@
 package org.conjur.jenkins.configuration;
 
-import hudson.Extension;
-import hudson.model.*;
-import jenkins.model.Jenkins;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+
+import hudson.Extension;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
+import jenkins.model.Jenkins;
 
 public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
     
@@ -25,9 +25,7 @@ public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
 	// 	<f:textbox field="hostPrefix" name="hostPrefix"/>
 	// </f:entry>
 
-	private static final Logger LOGGER = Logger.getLogger(ConjurJITJobProperty.class.getName());
-
-    private static final String DISPLAY_NAME = "Conjur Just-In-Time Access";
+	private static final String DISPLAY_NAME = "Conjur Just-In-Time Access";
 
 	private Boolean inheritFromParent = true;
     private Boolean useJustInTime = false;
@@ -39,8 +37,6 @@ public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
 	public ConjurJITJobProperty(ConjurConfiguration conjurConfiguration) {
 		super();
 		this.conjurConfiguration = conjurConfiguration;
-		// this.conjurConfiguration.setOwnerFullName(this.owner.getParent().getFullName());
-		// LOGGER.log(Level.INFO, "Conjur Connfiguration Fields: {0}", ((ItemGroup) this).getFullName());
 	}
 
 	public ConjurConfiguration getConjurConfiguration() {

@@ -29,6 +29,7 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	private String jwtAudience = "";
 	private long keyLifetimeInMinutes = 60;
 	private long tokenDurarionInSeconds = 120;
+	private Boolean enableContextAwareCredentialStore = false;
 
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
@@ -63,6 +64,10 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 
 	public Boolean getEnableJWKS() {
 		return enableJWKS;
+	}
+
+	public Boolean getEnableContextAwareCredentialStore() {
+		return enableContextAwareCredentialStore;
 	}
 
 	public String getAuthWebServiceId() {
@@ -114,6 +119,12 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	@DataBoundSetter
 	public void setEnableJWKS(Boolean enableJWKS) {
 		this.enableJWKS = enableJWKS;
+		save();
+	}
+
+	@DataBoundSetter
+	public void setEnableContextAwareCredentialStore(Boolean enableContextAwareCredentialStore) {
+		this.enableContextAwareCredentialStore = enableContextAwareCredentialStore;
 		save();
 	}
 

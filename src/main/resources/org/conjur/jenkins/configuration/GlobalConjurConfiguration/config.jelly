@@ -20,5 +20,9 @@
         <f:entry title="${%JWT Token Durarion In Seconds}">
             <f:textbox field="tokenDurarionInSeconds" name="tokenDurarionInSeconds"/>
         </f:entry>
+        <f:entry title="${%Enable Context Aware Credential Stores?}" description="If checked, Conjur Credential Provider will populate stores with secret variables available from the current context">
+            <f:checkbox name="enableContextAwareCredentialStore" field="enableContextAwareCredentialStore" default="false" checked="${enableContextAwareCredentialStore}"/>
+        </f:entry>
+        
     </f:section>
 </j:jelly>

@@ -1,31 +1,33 @@
 package org.conjur.jenkins.credentials;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.function.Supplier;
-
 
 import javax.annotation.Nonnull;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import org.acegisecurity.Authentication;
+import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.conjursecrets.ConjurSecretCredentials;
 import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameSSHKeyCredentials;
-import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameSSHKeyCredentialsImpl;
 
 import hudson.Extension;
+import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
 @Extension
@@ -33,38 +35,39 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 
     private static final Logger LOGGER = Logger.getLogger(ConjurCredentialProvider.class.getName());
 
-    private static final ConcurrentHashMap<String, ConjurCredentialStore> allStores = new ConcurrentHashMap<String, ConjurCredentialStore>();
     private static final ConcurrentHashMap<String, Supplier<Collection<StandardCredentials>>> allCredentialSuppliers = new ConcurrentHashMap<String, Supplier<Collection<StandardCredentials>>> ();
 
-    // private final Supplier<Collection<StandardCredentials>> credentialsSupplier =
-    //         memoizeWithExpiration(CredentialsSupplier.standard(), () ->
-    //                 PluginConfiguration.normalize(PluginConfiguration.getInstance().getCache()));
+    private Supplier<Collection<StandardCredentials>> currentCredentialSupplier;
+
+    @Override
+    @Nonnull
+    public <C extends Credentials> List<C> getCredentials(@Nonnull Class<C> type,
+                                                          @Nonnull Item item,
+                                                          @Nonnull Authentication authentication,
+                                                          @Nonnull List<DomainRequirement> domainRequirements) {
+        return getCredentialsFromSupplier(type, item, authentication);
+
+    }
 
     @Override
     @Nonnull
     public <C extends Credentials> List<C> getCredentials(@Nonnull Class<C> type,
                                                           ItemGroup itemGroup,
                                                           Authentication authentication) {
+        return getCredentialsFromSupplier(type, itemGroup, authentication);
+    }
 
+    private <C extends Credentials> List<C> getCredentialsFromSupplier(@Nonnull Class<C> type,
+                                                                        ModelObject context,
+                                                                        Authentication authentication) {
         if (type.isAssignableFrom(ConjurSecretCredentials.class) || type.isAssignableFrom(ConjurSecretUsernameSSHKeyCredentials.class)) {
             if (ACL.SYSTEM.equals(authentication)) {
                 Collection<StandardCredentials> allCredentials = Collections.emptyList();
-                LOGGER.log(Level.INFO, "getCredentials ConjurCredentialProvider: " + this.getId() + " : " + this);
-                LOGGER.log(Level.INFO, "Getting Credentials from ConjurCredentialProvider @ " + itemGroup.getFullName() + " : " + itemGroup.getUrl());
-    
-                String key = String.valueOf(this.hashCode());
-                if (allCredentialSuppliers.containsKey(key)) {
-                    LOGGER.log(Level.INFO, "To Fetch credentials");
-                    Supplier<Collection<StandardCredentials>> credentialSupplier = allCredentialSuppliers.get(key);
-                    allCredentials = credentialSupplier.get();
-                }
-    
-                // try {
-                    // allCredentials = credentialsSupplier.get();
-                // } catch (SdkBaseException e) {
-                //     LOG.log(Level.WARNING, "Could not list credentials in Secrets Manager: message=[{0}]", e.getMessage());
-                // }
-    
+                LOGGER.log(Level.FINE, "**** getCredentials ConjurCredentialProvider: " + this.getId() + " : " + this );
+                LOGGER.log(Level.FINE, "Getting Credentials from ConjurCredentialProvider @ " + context.getClass().getName());
+                LOGGER.log(Level.FINE, "To Fetch credentials");
+                allCredentials = currentCredentialSupplier.get();
+                getStore(context);
                 return allCredentials.stream()
                         .filter(c -> type.isAssignableFrom(c.getClass()))
                         // cast to keep generics happy even though we are assignable
@@ -75,9 +78,17 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 
         return Collections.emptyList();
     }
+    
 
     @Override
-    public CredentialsStore getStore(ModelObject object) {
+    public ConjurCredentialStore getStore(ModelObject object) {
+
+        GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+        LOGGER.log(Level.FINE, "**** GlobalConjurConfiguration ==> " + globalConfig);
+        if (globalConfig == null || !globalConfig.getEnableJWKS() || !globalConfig.getEnableContextAwareCredentialStore()) {
+            LOGGER.log(Level.FINE, "No Conjur Credential Store (Content Aware)");
+            return null;
+        }
 
         if (object == Jenkins.get()) {
             return null;
@@ -87,17 +98,18 @@ public class ConjurCredentialProvider extends CredentialsProvider {
         Supplier<Collection<StandardCredentials>> supplier = null;
         
         if (object != null) {
-            String key = String.valueOf(object.hashCode());
-            if (allStores.containsKey(key)) {
-                LOGGER.log(Level.INFO, "GetStore EXISTING ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
-                store = allStores.get(key);
+            String key = String.valueOf(object.hashCode());            
+            if (ConjurCredentialStore.getAllStores().containsKey(key)) {
+                LOGGER.log(Level.FINEST, "GetStore EXISTING ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
+                store = ConjurCredentialStore.getAllStores().get(key);
             } else {
-                LOGGER.log(Level.INFO, "GetStore NEW ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
+                LOGGER.log(Level.FINEST, "GetStore NEW ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
                 store = new ConjurCredentialStore(this, object);
-                supplier = CredentialsSupplier.standard(object);
-                allStores.put(key, store);
-                allCredentialSuppliers.put(String.valueOf(this.hashCode()), supplier);
+                supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(120));
+                ConjurCredentialStore.getAllStores().put(key, store);
+                allCredentialSuppliers.put(key, supplier);
             }    
+            currentCredentialSupplier = allCredentialSuppliers.get(key);
         }
 
         return store;
@@ -105,10 +117,11 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 
     @Override
     public String getIconClassName() {
-        return "icon-aws-secrets-manager-credentials-store";
+        return "icon-conjur-credentials-store";
     }
 
-    // private static <T> Supplier<T> memoizeWithExpiration(Supplier<T> base, Supplier<Duration> duration) {
-    //     return CustomSuppliers.memoizeWithExpiration(base, duration);
-    // }
+    private static <T> Supplier<T> memoizeWithExpiration(Supplier<T> base, Duration duration) {
+        return CustomSuppliers.memoizeWithExpiration(base, duration);
+    }
+
 }

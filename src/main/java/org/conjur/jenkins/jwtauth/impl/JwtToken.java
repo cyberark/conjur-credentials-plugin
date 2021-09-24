@@ -54,7 +54,7 @@ public class JwtToken {
      * @return base64 representation of JWT token
      */
     public String sign() {
-        LOGGER.log(Level.INFO, "Signing Token");
+        LOGGER.log(Level.FINE, "Signing Token");
         try {
             JsonWebSignature jsonWebSignature = new JsonWebSignature();
             // RSAPrivateKey k = InstanceIdentity.get().getPrivate();
@@ -64,7 +64,7 @@ public class JwtToken {
             jsonWebSignature.setKeyIdHeaderValue(key.getId());
             jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
             jsonWebSignature.setHeader(HeaderParameterNames.TYPE, "JWT");
-            LOGGER.log(Level.INFO, "Return: " + jsonWebSignature.getCompactSerialization());
+            LOGGER.log(Level.FINEST, "Return: " + jsonWebSignature.getCompactSerialization());
             return jsonWebSignature.getCompactSerialization();
         } catch (JoseException e) {
             String msg = "Failed to sign JWT token: " + e.getMessage();
@@ -78,12 +78,12 @@ public class JwtToken {
     }
  
     public static String getToken(String pluginAction, Object context) {
-        LOGGER.log(Level.INFO, "***** Getting Token");
+        LOGGER.log(Level.FINE, "***** Getting Token");
 
         GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-        LOGGER.log(Level.INFO, "**** GlobalConjurConfiguration ==> " + globalConfig);
+        LOGGER.log(Level.FINE, "**** GlobalConjurConfiguration ==> " + globalConfig);
         if (globalConfig == null || !globalConfig.getEnableJWKS()) {
-            LOGGER.log(Level.INFO, "No JWT Authentication");
+            LOGGER.log(Level.FINE, "No JWT Authentication");
             return null;
         }
 
@@ -114,7 +114,7 @@ public class JwtToken {
         jwtToken.claim.put("exp", currentTime + GlobalConjurConfiguration.get().getTokenDurarionInSeconds());
         jwtToken.claim.put("nbf", currentTime - DEFAULT_NOT_BEFORE_IN_SEC);
 
-        LOGGER.log(Level.INFO, "Context => " + context);
+        LOGGER.log(Level.FINE, "Context => " + context);
 
         ModelObject contextObject = (ModelObject) context; 
 
@@ -175,7 +175,7 @@ public class JwtToken {
         Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
         while(iterator.hasNext()) {
             JwtRsaDigitalSignatureKey key = iterator.next();
-            LOGGER.log(Level.INFO, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime() + " max_key_time_in_sec: " + max_key_time_in_sec + " exp: " + jwtToken.claim.getLong("exp"));
+            // LOGGER.log(Level.FINE, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime() + " max_key_time_in_sec: " + max_key_time_in_sec + " exp: " + jwtToken.claim.getLong("exp"));
             if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
                 if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
                     result = key;
@@ -209,7 +209,7 @@ public class JwtToken {
         Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
         while(iterator.hasNext()) {
             JwtRsaDigitalSignatureKey key = iterator.next();
-            LOGGER.log(Level.INFO, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime());
+            // LOGGER.log(Level.FINE, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime());
             if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
                 JSONObject jwk = new JSONObject();
                 jwk.put("kty", "RSA");

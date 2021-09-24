@@ -3,11 +3,9 @@ package org.conjur.jenkins.conjursecrets;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
 
 import javax.annotation.CheckForNull;
 
-import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
@@ -15,17 +13,12 @@ import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
-import org.conjur.jenkins.configuration.ConjurJITJobProperty;
-import org.conjur.jenkins.configuration.FolderConjurConfiguration;
-import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
-import hudson.model.Item;
-import hudson.model.ItemGroup;
-import hudson.model.Run;
+import hudson.model.ModelObject;
 import hudson.remoting.Channel;
 import hudson.util.Secret;
 import okhttp3.OkHttpClient;
@@ -50,9 +43,10 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretCredentialsImpl.class.getName());
 	private String variablePath; // to be used as Username
 
-	private transient ConjurConfiguration conjurConfiguration;
+	private ConjurConfiguration conjurConfiguration;
 
-	private transient Run<?, ?> context;
+	private transient ModelObject context;
+	private transient ModelObject storeContext;
 
 	static Logger getLogger() {
 		return Logger.getLogger(ConjurSecretCredentialsImpl.class.getName());
@@ -95,7 +89,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			String secretString = ConjurAPI.getSecret(client, this.conjurConfiguration, authToken, this.variablePath);
 			result = secretString;
 		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, "EXCEPTION: " + e.getMessage());
+			LOGGER.log(Level.FINE, "EXCEPTION: " + e.getMessage());
 			throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
 
@@ -111,10 +105,16 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			this.conjurConfiguration = conjurConfiguration;
 	}
 
-	public void setContext(Run<?, ?> context) {
-		LOGGER.log(Level.INFO, "Setting context");
+	public void setContext(ModelObject context) {
+		LOGGER.log(Level.FINEST, "Setting context");
 		this.context = context;
-		setConjurConfiguration(ConjurAPI.getConfigurationFromContext(context));
+		setConjurConfiguration(ConjurAPI.getConfigurationFromContext(context, storeContext));
+	}
+
+	public void setStoreContext(ModelObject storeContext) {
+		LOGGER.log(Level.FINEST, "Setting store context");
+		this.context = storeContext;
+		setConjurConfiguration(ConjurAPI.getConfigurationFromContext(context, storeContext));
 	}
 
 	@DataBoundSetter

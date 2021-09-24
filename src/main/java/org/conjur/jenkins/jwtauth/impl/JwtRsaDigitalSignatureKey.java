@@ -1,9 +1,8 @@
 package org.conjur.jenkins.jwtauth.impl;
 
-import jenkins.security.RSADigitalSignatureConfidentialKey;
-
-import java.io.IOException;
 import java.security.interfaces.RSAPrivateKey;
+
+import jenkins.security.RSADigitalSignatureConfidentialKey;
 
 /**
  * RSA key pair used to sign JWT tokens.

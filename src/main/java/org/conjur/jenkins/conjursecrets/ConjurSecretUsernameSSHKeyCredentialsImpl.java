@@ -20,10 +20,10 @@ import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
 import hudson.model.Item;
-import hudson.model.Run;
+import hudson.model.ModelObject;
 import hudson.security.ACL;
-import hudson.util.Secret;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 
 
 public class ConjurSecretUsernameSSHKeyCredentialsImpl extends BaseSSHUser
@@ -40,7 +40,8 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	private ConjurConfiguration conjurConfiguration;
 	private Secret passphrase;
 
-	transient Run<?, ?> context;
+	transient ModelObject context;
+	transient ModelObject storeContext;
 
 	@DataBoundConstructor
 	public ConjurSecretUsernameSSHKeyCredentialsImpl(final CredentialsScope scope, final String id,
@@ -98,7 +99,6 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
 					URIRequirementBuilder.fromUri(uri).build());
 		}
-	
 
 	}
 
@@ -112,17 +112,23 @@ implements ConjurSecretUsernameSSHKeyCredentials {
 	}
 
 	@Override
-	public void setContext(final Run<?, ?> context) {
-		LOGGER.log(Level.INFO, "Set Context");
+	public void setContext(final ModelObject context) {
+		LOGGER.log(Level.FINE, "Set Context");
 		if (context != null)
 			this.context = context;
 	}
 
 	@Override
+	public void setStoreContext(ModelObject storeContext) {
+		LOGGER.log(Level.FINE, "Setting store context");
+		this.storeContext = storeContext;
+	}
+
+	@Override
 	public String getPrivateKey() {
-		LOGGER.log(Level.INFO, "Getting SSH Key secret from Conjur");
+		LOGGER.log(Level.FINE, "Getting SSH Key secret from Conjur");
 		final Secret secret = ConjurSecretCredentials.getSecretFromCredentialIDWithConfigAndContext(
-				this.getCredentialID(), this.conjurConfiguration, this.context);
+				this.getCredentialID(), this.conjurConfiguration, this.context, this.storeContext);
 		return secret.getPlainText();
 	}
 

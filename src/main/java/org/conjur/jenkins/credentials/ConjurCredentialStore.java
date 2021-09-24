@@ -1,5 +1,12 @@
 package org.conjur.jenkins.credentials;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
@@ -12,13 +19,6 @@ import org.jenkins.ui.icon.IconSet;
 import org.jenkins.ui.icon.IconType;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import hudson.model.ModelObject;
 import hudson.security.ACL;
 import hudson.security.Permission;
@@ -26,16 +26,20 @@ import jenkins.model.Jenkins;
 
 public class ConjurCredentialStore extends CredentialsStore {
 
-    private static final Logger LOGGER = Logger.getLogger(ConjurCredentialProvider.class.getName());
-
+    private static ConcurrentHashMap<String, ConjurCredentialStore> allStores = new ConcurrentHashMap<String, ConjurCredentialStore>();
     private final ConjurCredentialProvider provider;
     private final ModelObject context; 
-    private final ConjurCredentialStoreAction action = new ConjurCredentialStoreAction(this);
+    private final ConjurCredentialStoreAction action;
 
     public ConjurCredentialStore(ConjurCredentialProvider provider, ModelObject context) {
         super(ConjurCredentialProvider.class);
         this.provider = provider;
         this.context = context;
+        this.action = new ConjurCredentialStoreAction(this, context);
+    }
+
+    public static ConcurrentHashMap<String, ConjurCredentialStore> getAllStores() {
+        return allStores;
     }
 
     @Nonnull
@@ -98,36 +102,36 @@ public class ConjurCredentialStore extends CredentialsStore {
 
         private final ConjurCredentialStore store;
 
-        private ConjurCredentialStoreAction(ConjurCredentialStore store) {
+        private ConjurCredentialStoreAction(ConjurCredentialStore store, ModelObject context) {
             this.store = store;
             addIcons();
         }
 
         private void addIcons() {
             IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-sm",
-                    "aws-secrets-manager-credentials-provider/images/16x16/icon.png",
+                    "conjur-credentials/images/conjur-credential-store-sm.png",
                     Icon.ICON_SMALL_STYLE, IconType.PLUGIN));
             IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-md",
-                    "aws-secrets-manager-credentials-provider/images/24x24/icon.png",
+                    "conjur-credentials/images/conjur-credential-store-md.png",
                     Icon.ICON_MEDIUM_STYLE, IconType.PLUGIN));
             IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-lg",
-                    "aws-secrets-manager-credentials-provider/images/32x32/icon.png",
+                    "conjur-credentials/images/conjur-credential-store-lg.png",
                     Icon.ICON_LARGE_STYLE, IconType.PLUGIN));
             IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-xlg",
-                    "aws-secrets-manager-credentials-provider/images/48x48/icon.png",
+                    "conjur-credentials/images/conjur-credential-store-xlg.png",
                     Icon.ICON_XLARGE_STYLE, IconType.PLUGIN));
         }
 
         @Override
         @Nonnull
-        public CredentialsStore getStore() {
+        public ConjurCredentialStore getStore() {
             return store;
         }
 
         @Override
         public String getIconFileName() {
             return isVisible()
-                    ? "/plugin/aws-secrets-manager-credentials-provider/images/32x32/icon.png"
+                    ? "/plugin/conjur-credentials/images/conjur-credential-store-lg.png"
                     : null;
         }
 

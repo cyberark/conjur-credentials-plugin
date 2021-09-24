@@ -81,16 +81,16 @@ public class ConjurAPI {
 				if (context instanceof Run) {
 					availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
 					((Run) context).getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
-				} else if (context instanceof Item) {
+				} else {
 					availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					(Item) context, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+					(AbstractItem) context, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
 				}
 			}
 		} else {
 			try {
 				availableCredentials = channel.call(new ConjurAPIUtils.NewAvailableCredentials());
 			} catch (InterruptedException e) {
-				getLogger().log(Level.INFO, "Exception getting available credentials", e);
+				getLogger().log(Level.FINE, "Exception getting available credentials", e);
 				e.printStackTrace();
 			}
 		}
@@ -99,13 +99,13 @@ public class ConjurAPI {
 
 		Request request = null;
 		if (conjurAuthn.login != null && conjurAuthn.apiKey != null) {
-			LOGGER.log(Level.INFO, "Authenticating with Conjur (authn)");
+			LOGGER.log(Level.FINE, "Authenticating with Conjur (authn)");
 			request = new Request.Builder()
 				.url(String.format("%s/%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
 						conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
 				.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 		} else if (conjurAuthn.authnPath != null & conjurAuthn.apiKey != null) {
-			LOGGER.log(Level.INFO, "Authenticating with Conjur (JWT)");
+			LOGGER.log(Level.FINE, "Authenticating with Conjur (JWT)");
 			request = new Request.Builder()
 				.url(String.format("%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
 						conjurAuthn.account))
@@ -117,14 +117,14 @@ public class ConjurAPI {
 			Response response = client.newCall(request).execute();
 			resultingToken = Base64.getEncoder().withoutPadding()
 					.encodeToString(response.body().string().getBytes("UTF-8"));
-			LOGGER.log(Level.INFO,
+			LOGGER.log(Level.FINEST,
 					() -> "Conjur Authenticate response " + response.code() + " - " + response.message());
 			if (response.code() != 200) {
 				throw new IOException("Error authenticating to Conjur [" + response.code() + " - " + response.message()
 						+ "\n" + resultingToken);
 			}
 		} else {
-			LOGGER.log(Level.INFO, "Failed to find credentials for conjur authentication");
+			LOGGER.log(Level.FINE, "Failed to find credentials for conjur authentication");
 		}
 
 		return resultingToken;
@@ -132,8 +132,6 @@ public class ConjurAPI {
 
 	public static ConjurAuthnInfo getConjurAuthnInfo(ConjurConfiguration configuration,
 			List<UsernamePasswordCredentials> availableCredentials, ModelObject context) {
-		// Conjur variables
-		LOGGER.log(Level.INFO, "getting conjut authentication info getConjurAuthnInfo");
 		ConjurAuthnInfo conjurAuthn = new ConjurAuthnInfo();
 
 		if (configuration != null) {
@@ -159,56 +157,13 @@ public class ConjurAPI {
 
 		// Check for Just-In-time Credential Access
 		if (context != null) {
-			LOGGER.log(Level.INFO, "calling setConjurAuthnForJITCredentialAccess");
 			setConjurAuthnForJITCredentialAccess(context, conjurAuthn);
 		}
-
-		LOGGER.log(Level.INFO, "Returning conjurAuthn=" + conjurAuthn);
 
 		return conjurAuthn;
 	}
 
-	// private static String signatureForRequest(String challenge, RSAPrivateKey privateKey) {
-	// 	// sign using the private key
-	// 	LOGGER.log(Level.INFO, "Challenge: {0}", challenge);
-	// 	try {
-	// 		Signature sig = Signature.getInstance("SHA256withRSA");
-	// 		sig.initSign(privateKey);
-	// 		sig.update(challenge.getBytes("UTF8"));
-	// 		String signatureString = Base64.getEncoder().encodeToString(sig.sign());
-	// 		LOGGER.log(Level.INFO, "*** SignatureString: {0}", signatureString);
-	// 		return signatureString;
-	// 	} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
-	// 		e.printStackTrace();
-	// 	} catch (UnsupportedEncodingException e) {
-	// 		e.printStackTrace();
-	// 	}
-	// 	return null;
-	// }
-
-	// private static String apiKeyForAuthentication(String prefix, String buildNumber, String signature,
-	// 		String keyAlgorithm) {
-	// 	// Build the response Body
-	// 	Map<String, String> body = new HashMap<String, String>();
-	// 	body.put("buildNumber", buildNumber);
-	// 	body.put("signature", signature);
-	// 	body.put("keyAlgorithm", keyAlgorithm);
-	// 	if (prefix != null && prefix.length() > 0) {
-	// 		body.put("jobProperty_hostPrefix", prefix);
-	// 	}
-
-	// 	ObjectMapper objectMapper = new ObjectMapper();
-
-	// 	try {
-	// 		return objectMapper.writeValueAsString(body);
-	// 	} catch (IOException e) {
-	// 		e.printStackTrace();
-	// 	}
-	// 	return null;
-	// }
-
 	private static void setConjurAuthnForJITCredentialAccess(ModelObject context, ConjurAuthnInfo conjurAuthn) {
-
 		String token = JwtToken.getToken(context);
 		GlobalConjurConfiguration globalconfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 
@@ -216,23 +171,7 @@ public class ConjurAPI {
 			conjurAuthn.login = null;
 			conjurAuthn.authnPath = globalconfig.getAuthWebServiceId();
 			conjurAuthn.apiKey = "jwt=" + token;
-		}
-		
-		// ConjurJITJobProperty conjurJobConfig = context.getParent().getProperty(ConjurJITJobProperty.class);
-		// if (conjurJobConfig != null && conjurJobConfig.getUseJustInTime()) {
-		// 	String jobName = context.getParent().getFullName();
-		// 	int buildNumber = context.getNumber();
-		// 	LOGGER.log(Level.INFO, "++++++ JobName: " + jobName + "  Build Number: " + buildNumber);
-		// 	String prefix = conjurJobConfig.getHostPrefix();
-		// 	LOGGER.log(Level.INFO, "PREFIX: {0}", prefix);
-		// 	RSAPrivateKey privateKey = InstanceIdentity.get().getPrivate();
-		// 	LOGGER.log(Level.INFO, privateKey.getAlgorithm());
-		// 	conjurAuthn.login = "host/" + (prefix != null && prefix.length() > 0 ? prefix + "/" : "") + jobName;
-		// 	conjurAuthn.authnPath = "authn-jenkins/" + conjurJobConfig.getAuthWebServiceId();
-		// 	conjurAuthn.apiKey = apiKeyForAuthentication(prefix, String.valueOf(buildNumber),
-		// 			signatureForRequest(jobName + "-" + buildNumber, privateKey), privateKey.getAlgorithm());
-		// 	LOGGER.log(Level.INFO, "*** passwordBody: {0}", conjurAuthn.apiKey);
-		// }
+		}		
 	}
 
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
@@ -241,14 +180,14 @@ public class ConjurAPI {
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, null, null);
 
-		LOGGER.log(Level.INFO, "Fetching secret from Conjur");
+		LOGGER.log(Level.FINEST, "Fetching secret from Conjur");
 		Request request = new Request.Builder().url(
 				String.format("%s/secrets/%s/variable/%s", conjurAuthn.applianceUrl, conjurAuthn.account, variablePath))
 				.get().addHeader("Authorization", "Token token=\"" + authToken + "\"").build();
 
 		Response response = client.newCall(request).execute();
 		result = response.body().string();
-		LOGGER.log(Level.INFO, () -> "Fetch secret [" + variablePath + "] from Conjur response " + response.code()
+		LOGGER.log(Level.FINEST, () -> "Fetch secret [" + variablePath + "] from Conjur response " + response.code()
 				+ " - " + response.message());
 		if (response.code() != 200) {
 			throw new IOException("Error fetching secret from Conjur [" + response.code() + " - " + response.message()
@@ -260,10 +199,10 @@ public class ConjurAPI {
 
 	public static ConjurConfiguration logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		if (conjurConfiguration != null) {
-			LOGGER.log(Level.INFO, "Conjur configuration provided");
-			LOGGER.log(Level.INFO, "Conjur Configuration Appliance Url: " + conjurConfiguration.getApplianceURL());
-			LOGGER.log(Level.INFO, "Conjur Configuration Account: " + conjurConfiguration.getAccount());
-			LOGGER.log(Level.INFO, "Conjur Configuration credential ID: " + conjurConfiguration.getCredentialID());
+			LOGGER.log(Level.FINEST, "Conjur configuration provided");
+			LOGGER.log(Level.FINEST, "Conjur Configuration Appliance Url: " + conjurConfiguration.getApplianceURL());
+			LOGGER.log(Level.FINEST, "Conjur Configuration Account: " + conjurConfiguration.getAccount());
+			LOGGER.log(Level.FINEST, "Conjur Configuration credential ID: " + conjurConfiguration.getCredentialID());
 		}
 		return conjurConfiguration;
 	}
@@ -271,7 +210,7 @@ public class ConjurAPI {
 	private static void initializeWithCredential(ConjurAuthnInfo conjurAuthn, String credentialID,
 			List<UsernamePasswordCredentials> availableCredentials) {
 		if (credentialID != null && !credentialID.isEmpty()) {
-			LOGGER.log(Level.INFO, "Retrieving Conjur credential stored in Jenkins");
+			LOGGER.log(Level.FINEST, "Retrieving Conjur credential stored in Jenkins");
 			UsernamePasswordCredentials credential = CredentialsMatchers.firstOrNull(availableCredentials,
 					CredentialsMatchers.withId(credentialID));
 			if (credential != null) {
@@ -281,25 +220,26 @@ public class ConjurAPI {
 		}
 	}
 
-	public static ConjurConfiguration getConfigurationFromContext(ModelObject context) {
-		LOGGER.log(Level.INFO, "Getting Configuration from Context");
+	public static ConjurConfiguration getConfigurationFromContext(ModelObject context, ModelObject storeContext) {
+
+		ModelObject effectiveContext = context != null? context : storeContext;
 
         Item contextObject = null;
 		ConjurJITJobProperty conjurJobConfig = null;
 
 
-        if (context instanceof Run) {
-            Run run = (Run) context;
+        if (effectiveContext instanceof Run) {
+            Run run = (Run) effectiveContext;
 			conjurJobConfig = (ConjurJITJobProperty) run.getParent().getProperty(ConjurJITJobProperty.class);
             contextObject = run.getParent();
-        } else if (context instanceof AbstractItem) {
-			contextObject = (Item) context;
+        } else if (effectiveContext instanceof AbstractItem) {
+			contextObject = (Item) effectiveContext;
 		}
 
 
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
 
-		if (context == null) {
+		if (effectiveContext == null) {
 			return ConjurAPI.logConjurConfiguration(conjurConfig);
 		}
 
@@ -330,7 +270,6 @@ public class ConjurAPI {
 		}
 		return null;
 	}
-
 
 	private ConjurAPI() {
 		super();
