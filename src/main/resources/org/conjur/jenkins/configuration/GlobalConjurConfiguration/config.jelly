@@ -23,6 +23,14 @@
         <f:entry title="${%Enable Context Aware Credential Stores?}" description="If checked, Conjur Credential Provider will populate stores with secret variables available from the current context">
             <f:checkbox name="enableContextAwareCredentialStore" field="enableContextAwareCredentialStore" default="false" checked="${enableContextAwareCredentialStore}"/>
         </f:entry>
-        
+        <f:entry title="${%Identity Field Name}">
+            <f:textbox field="identityFieldName" name="identityFieldName" description="Name of the field to be added to JWT claim to possibly use it as identity"/>
+        </f:entry>
+        <f:entry title="${%Identity Format Fields}">
+            <f:textbox field="identityFormatFieldsFromToken" name="identityFormatFieldsFromToken" description="Comma separated fields from JWT Token to create identity field"/>
+        </f:entry>
+        <f:entry title="${%Identity Fields Separator}">
+            <f:textbox field="identityFieldsSeparator" name="identityFieldsSeparator" description="Separator to place between format fields for identity"/>
+        </f:entry>
     </f:section>
 </j:jelly>

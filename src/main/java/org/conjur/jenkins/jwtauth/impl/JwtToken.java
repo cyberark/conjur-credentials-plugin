@@ -3,10 +3,12 @@ package org.conjur.jenkins.jwtauth.impl;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -159,6 +161,19 @@ public class JwtToken {
                     jwtToken.claim.put("jenkins_parent_pronoun", job.getPronoun());
                 }
             }
+
+            // Add identity field
+            List<String> identityFields = Arrays.asList(globalConfig.getIdentityFormatFieldsFromToken().split(","));
+            String fieldSeparator = globalConfig.getIdentityFieldsSeparator();
+            StringBuffer identityValue = new StringBuffer();
+            for (String identityField : identityFields) {
+                if (jwtToken.claim.has(identityField)) {
+                    String fieldValue = jwtToken.claim.getString(identityField);
+                    if (identityValue.length() != 0) identityValue.append(fieldSeparator);
+                    identityValue.append(fieldValue);
+                }
+            }
+            if (identityValue.length() > 0) jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
 
         }
 

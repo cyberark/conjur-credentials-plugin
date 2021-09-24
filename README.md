@@ -1,3 +1,4 @@
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/conjur-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fconjur-provider-plugin/activity/)
 # conjur-credentials-plugin
 
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  

@@ -30,6 +30,9 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	private long keyLifetimeInMinutes = 60;
 	private long tokenDurarionInSeconds = 120;
 	private Boolean enableContextAwareCredentialStore = false;
+	private String identityFormatFieldsFromToken = "jenkins_name";
+	private String identityFieldsSeparator = "-";
+	private String identityFieldName = "identity";
 
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
@@ -77,6 +80,36 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	@DataBoundSetter
 	public void setAuthWebServiceId(String authWebServiceId) {
 		this.authWebServiceId = authWebServiceId;
+		save();
+	}
+
+	public String getidentityFieldName() {
+		return identityFieldName;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFieldName(String identityFieldName) {
+		this.identityFieldName = identityFieldName;
+		save();
+	}
+
+	public String getIdentityFormatFieldsFromToken() {
+		return identityFormatFieldsFromToken;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFormatFieldsFromToken(String identityFormatFieldsFromToken) {
+		this.identityFormatFieldsFromToken = identityFormatFieldsFromToken;
+		save();
+	}
+
+	public String getIdentityFieldsSeparator() {
+		return identityFieldsSeparator;
+	}
+
+	@DataBoundSetter
+	public void setIdentityFieldsSeparator(String identityFieldsSeparator) {
+		this.identityFieldsSeparator = identityFieldsSeparator;
 		save();
 	}
 
