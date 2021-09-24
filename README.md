@@ -43,7 +43,7 @@ You need to define the following as well:
 
 When Context Aware Credential Stores is enabled, the conjur-credentials plugin will act as a Credential Provider and populate stores with the available secrets/variables based on the current context of the navigation. For this feature, JWT Authentication is used and the JWT Key Set Endpoint needs to be enabled. The credentials provided by the context aware store is available to be used as if it was defined statically.
 
-[Context Aware Credential Stores](docs/images/Context-Aware-Credential-Stores.png)
+![Context Aware Credential Stores](docs/images/Context-Aware-Credential-Stores.png)
 
 #### Annotations for secrets/variables
 
