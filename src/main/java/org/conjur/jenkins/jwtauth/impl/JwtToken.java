@@ -81,9 +81,11 @@ public class JwtToken {
  
     public static String getToken(String pluginAction, Object context) {
         LOGGER.log(Level.FINE, "***** Getting Token");
+        return getUnsignedToken(pluginAction, context).sign();
+    }
 
+    public static JwtToken getUnsignedToken(String pluginAction, Object context) {
         GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-        LOGGER.log(Level.FINE, "**** GlobalConjurConfiguration ==> " + globalConfig);
         if (globalConfig == null || !globalConfig.getEnableJWKS()) {
             LOGGER.log(Level.FINE, "No JWT Authentication");
             return null;
@@ -176,8 +178,7 @@ public class JwtToken {
             if (identityValue.length() > 0) jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
 
         }
-
-        return jwtToken.sign();
+        return jwtToken;
     }
 
     protected static JwtRsaDigitalSignatureKey getCurrentSigningKey(JwtToken jwtToken) {

@@ -23,5 +23,5 @@ public class ConjurSecretCredentialsDescriptor extends CredentialsDescriptor {
 		return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
 				URIRequirementBuilder.fromUri(uri).build());
 	}
-	
+
 }

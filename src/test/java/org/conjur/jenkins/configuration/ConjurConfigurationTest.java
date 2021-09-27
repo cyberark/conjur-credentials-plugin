@@ -75,29 +75,6 @@ public class ConjurConfigurationTest {
 			throw new RuntimeException(e);
 		}
 
-		/*
-		FreeStyleProject project;
-		try {
-			project = j.createFreeStyleProject();
-			project.getBuildersList().add(new BatchFile("echo hello"));
-			FreeStyleBuild build = project.scheduleBuild2(0).get();
-
-			assert (build.getResult().isBetterOrEqualTo(Result.SUCCESS));
-			System.out.println(build.getDisplayName() + " completed");
-			String s = FileUtils.readFileToString(build.getLogFile());
-			System.out.println(s);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-
 	}
 
 }

@@ -1,15 +1,14 @@
 package org.conjur.jenkins.configuration;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
+import javax.servlet.ServletException;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
@@ -17,6 +16,17 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+
+import org.apache.commons.lang.StringUtils;
+import org.conjur.jenkins.credentials.ConjurCredentialProvider;
+import org.conjur.jenkins.credentials.ConjurCredentialStore;
+import org.conjur.jenkins.credentials.CredentialsSupplier;
+import org.conjur.jenkins.jwtauth.impl.JwtToken;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -46,6 +56,25 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 			return "Conjur Configuration";
 		}
 
+		@POST
+		public FormValidation doObtainJwtToken(@AncestorInPath Item item) throws IOException, ServletException {
+			JwtToken token = JwtToken.getUnsignedToken("pluginAction", item);
+			return FormValidation.ok("JWT Token: \n" + token.claim.toString(4));
+		}
+
+		@POST
+		public FormValidation doRefreshCredentialSupplier(@AncestorInPath Item item) throws IOException, ServletException {
+						
+            String key = String.valueOf(item.hashCode());            
+            Supplier<Collection<StandardCredentials>> supplier;
+			if (ConjurCredentialStore.getAllStores().containsKey(key)) {
+                LOGGER.log(Level.FINEST, "Resetting Credential Supplier : " + item.getClass().getName() + ": " + item.toString() + " => " + item.hashCode());
+                supplier = ConjurCredentialProvider.memoizeWithExpiration(CredentialsSupplier.standard(item), Duration.ofSeconds(120));
+				ConjurCredentialProvider.getAllCredentialSuppliers().put(key, supplier);
+            }
+			return FormValidation.ok("Refreshed");
+		}
+		
 	}
 
 	/**
@@ -155,6 +184,6 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 			.includeEmptyValue()
 			.includeAs(ACL.SYSTEM, item, credentialClass, URIRequirementBuilder.fromUri(credentialsId).build())
 			.includeCurrentValue(credentialsId);
-	} 
+	}
 
 }

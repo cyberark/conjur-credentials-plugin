@@ -14,8 +14,11 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
+import org.conjur.jenkins.conjursecrets.ConjurSecretCredentials;
 import org.conjur.jenkins.conjursecrets.ConjurSecretCredentialsImpl;
+import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameCredentials;
 import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameCredentialsImpl;
+import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameSSHKeyCredentials;
 import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameSSHKeyCredentialsImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -109,17 +112,17 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                     }
                 }
 
-                ConjurSecretCredentialsImpl credential = new ConjurSecretCredentialsImpl(CredentialsScope.GLOBAL, variablePath.replace("/", "-"), variablePath, "CyberArk Conjur Provided");
+                ConjurSecretCredentials credential = (ConjurSecretCredentials) new ConjurSecretCredentialsImpl(CredentialsScope.GLOBAL, variablePath.replace("/", "-"), variablePath, "CyberArk Conjur Provided");
                 credential.setStoreContext(getContext());
                 allCredentials.add(credential);
                 switch (credentialType) {
                     case "usernamecredential":
-                        ConjurSecretUsernameCredentialsImpl usernameCredential = new ConjurSecretUsernameCredentialsImpl(CredentialsScope.GLOBAL, "username-" + variablePath.replace("/", "-"), userName, variablePath.replace("/", "-"), conjurConfiguration, "CyberArk Conjur Provided");
+                        ConjurSecretUsernameCredentials usernameCredential = (ConjurSecretUsernameCredentials) new ConjurSecretUsernameCredentialsImpl(CredentialsScope.GLOBAL, "username-" + variablePath.replace("/", "-"), userName, variablePath.replace("/", "-"), conjurConfiguration, "CyberArk Conjur Provided");
                         usernameCredential.setStoreContext(getContext());
                         allCredentials.add(usernameCredential);
                         break;
                     case "usernamesshkeycredential":
-                        ConjurSecretUsernameSSHKeyCredentialsImpl usernameSSHKeyCredential = new ConjurSecretUsernameSSHKeyCredentialsImpl(CredentialsScope.GLOBAL, "usernamesshkey-" + variablePath.replace("/", "-"), userName, variablePath.replace("/", "-"), conjurConfiguration, null /* no passphrase yet */, "CyberArk Conjur Provided");
+                        ConjurSecretUsernameSSHKeyCredentials usernameSSHKeyCredential = (ConjurSecretUsernameSSHKeyCredentials) new ConjurSecretUsernameSSHKeyCredentialsImpl(CredentialsScope.GLOBAL, "usernamesshkey-" + variablePath.replace("/", "-"), userName, variablePath.replace("/", "-"), conjurConfiguration, null /* no passphrase yet */, "CyberArk Conjur Provided");
                         usernameSSHKeyCredential.setStoreContext(getContext());
                         allCredentials.add(usernameSSHKeyCredential);
                     break;

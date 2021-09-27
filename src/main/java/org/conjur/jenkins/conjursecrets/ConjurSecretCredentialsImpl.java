@@ -124,7 +124,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	@Override
 	public String getNameTag() {
-		return "/*Conjur*";
+		return "";
 	}
 
 }
