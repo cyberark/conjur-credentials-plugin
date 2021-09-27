@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+##[1.0.6] - 2021-09-27
+- Updated README.md 
+- Added "JWT Token Claims" button to configuration page to obtain referecence claims to be used by JWT Authenticator
+- Fixed bindings for context aware store credentials
+
 ##[1.0.5] - 2021-09-23
 - Added JWT Authentication
 - Added Context Aware (Based on JWT) Credential Provider

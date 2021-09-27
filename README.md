@@ -1,3 +1,5 @@
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/conjur-credentials-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fconjur-credentials-plugin/activity/)
+
 # conjur-credentials-plugin
 
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
@@ -9,7 +11,7 @@ This Conjur plugin securely provides credentials that are stored in Conjur to Je
 
 ## Usage
 
-After installing the plugin and restarting Jenkins, you are ready to start.
+Install the plugin using Jenkins "Plugin Manager" with an administrator account. After installing the plugin and restarting Jenkins, you are ready to start. 
 
 ### Global Configuration
 
@@ -26,7 +28,7 @@ Please read the [documentation for JWT Authenticator ](https://docs.cyberark.com
 You can enable the use of JWT Authentication by checking "Enable JWT Key Set Endpoint", this will allow the plugin provide an endpoint for the JWKS_URI (described in the documentation link).  
 The JWT Key Set Endpoint will be: BASEURLFORJENKINS/jwtauth/conjur-jwk-set
 
-Once enabled any job that runs from Jenkins where a Conjur Login Credential has not been provided, the conjur-credentials plugin will automatically generate a JWT Token based on the context of the execution which can be served as authentication mechanism. The token signature will be validated with the JWT Key set exposed by the endpoint.
+Once enabled, any job that runs from Jenkins where a Conjur Login Credential has not been provided, the conjur-credentials plugin will automatically generate a JWT Token based on the context of the execution which can be served as authentication mechanism. The token signature will be validated with the JWT Key set exposed by the endpoint.
 
 You need to define the following as well:
 
@@ -39,15 +41,24 @@ You need to define the following as well:
 * Identity Fields Separator: The character(s) to be used in the concatenation of the format fields. 
 * Enable Context Aware Credential Stores: Please see following section. 
 
+### How to obtain JWT Token Claims
+
+In the configuration page of the item (project, job, foler, etc) you will find the "JWT Token Claims" button, clicking on it will show the JWT Token claims for the item based on the context where it is. 
+
+![JWT Claims](docs/images/JWT-Claims.png)
+
+This information can be used by the Conjur Security Administrator to grant access to credentials. 
+
+
 ### Global Configuration: Context Aware Credential Stores  (Conjur Credentials Provider)
 
-When Context Aware Credential Stores is enabled, the conjur-credentials plugin will act as a Credential Provider and populate stores with the available secrets/variables based on the current context of the navigation. For this feature, JWT Authentication is used and the JWT Key Set Endpoint needs to be enabled. The credentials provided by the context aware store is available to be used as if it was defined statically.
+When Context Aware Credential Stores is enabled, the conjur-credentials plugin will act as a Credential Provider and populate stores with the available secrets/variables based on the current context of the navigation. For this feature, JWT Authentication is used and the JWT Key Set Endpoint needs to be enabled. The credentials provided by the context aware store are available to be used as if they were defined statically.
 
 ![Context Aware Credential Stores](docs/images/Context-Aware-Credential-Stores.png)
 
 #### Annotations for secrets/variables
 
-You can add annotations in Conjur policy to expand the credentials available through the Context Aware Credential Store. 
+You can add annotations in your Conjur policy to expand the credentials available through the Context Aware Credential Store. 
 
 For any secret variable in Conjur available to the context a "Conjur Secret Credential" credential will be exposed. 
 
@@ -65,7 +76,7 @@ Here an example:
           jenkins_credential_type: manager
 ```
 
-### Folder Property Configuration
+### Folder/Job Property Configuration
 
 To set the Conjur appliance information at the folder level, cLick the **FolderLevel** tab.
 
@@ -105,6 +116,7 @@ To reference Conjur secrets in a Jenkins script, use `withCredentials` and the s
 
 Here some examples showing how to fetch the secret from a Jenkins job pipeline definition.
 
+
 ```groovy
 node {
    stage('Work') {
@@ -119,6 +131,7 @@ node {
 }
 ```
 
+
 ```groovy
 node {
    stage('Work') {
@@ -132,6 +145,7 @@ node {
    }
 }
 ```
+
 
 ```groovy
 node {
