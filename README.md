@@ -1,3 +1,5 @@
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/conjur-credentials-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Fconjur-credentials-plugin/activity/)
+
 # conjur-credentials-plugin
 
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
@@ -114,6 +116,7 @@ To reference Conjur secrets in a Jenkins script, use `withCredentials` and the s
 
 Here some examples showing how to fetch the secret from a Jenkins job pipeline definition.
 
+
 ```groovy
 node {
    stage('Work') {
@@ -128,6 +131,7 @@ node {
 }
 ```
 
+
 ```groovy
 node {
    stage('Work') {
@@ -141,6 +145,7 @@ node {
    }
 }
 ```
+
 
 ```groovy
 node {
