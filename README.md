@@ -32,7 +32,7 @@ Once enabled, any job that runs from Jenkins where a Conjur Login Credential has
 
 You need to define the following as well:
 
-* Auth WebService ID: The Service ID of your JWT Authenticator webservice. [See doc here](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Developer/Conjur_API_JWT_Authenticator.htm)
+* Auth WebService ID: The Service ID of your JWT Authenticator webservice. [See doc here](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Developer/Conjur_API_JWT_Authenticator.htm). This could be either the service id or authenticator_type/service_id (authn-jwt/id)
 * JWT Audience: the aud value in the JWT Token
 * Signing Key Lifetime in Minutes: For how long will the signing key for JWT Tokens will be valid, and exposed via the JWT key set endpoint
 * JWT Token Duration In Seconds: This will the lifetime of any JWT token generated via the conjur-credentials plugin
@@ -40,6 +40,8 @@ You need to define the following as well:
 * Identity Format Fields: Comma separated list of JWT Claim fields to be concatenated for the value of the Identity Field. 
 * Identity Fields Separator: The character(s) to be used in the concatenation of the format fields. 
 * Enable Context Aware Credential Stores: Please see following section. 
+
+**Note:** CyberArk recommends keeping the token and key TTL values the minimum possible based on context. 
 
 ### How to obtain JWT Token Claims
 

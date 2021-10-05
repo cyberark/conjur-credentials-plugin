@@ -107,7 +107,6 @@ public class ConjurCredentialProvider extends CredentialsProvider {
     public ConjurCredentialStore getStore(ModelObject object) {
 
         GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-        LOGGER.log(Level.FINE, "**** GlobalConjurConfiguration ==> " + globalConfig);
         if (globalConfig == null || !globalConfig.getEnableJWKS() || !globalConfig.getEnableContextAwareCredentialStore()) {
             LOGGER.log(Level.FINE, "No Conjur Credential Store (Content Aware)");
             return null;

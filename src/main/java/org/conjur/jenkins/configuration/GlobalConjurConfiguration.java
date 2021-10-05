@@ -1,16 +1,23 @@
 package org.conjur.jenkins.configuration;
 
 import java.io.Serializable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
 import org.conjur.jenkins.api.ConjurAPIUtils;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import hudson.Extension;
+import hudson.model.AbstractItem;
 import hudson.remoting.Channel;
+import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
+
 
 /**
  * Example of Jenkins global configuration.
@@ -37,6 +44,25 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	static Logger getLogger() {
 		return Logger.getLogger(GlobalConjurConfiguration.class.getName());
 	}
+
+
+
+	public FormValidation doCheckTokenDurarionInSeconds(@AncestorInPath AbstractItem anc,
+														@QueryParameter("tokenDurarionInSeconds") String tokenDurarionInSeconds,
+														@QueryParameter("keyLifetimeInMinutes") String keyLifetimeInMinutes) {
+		try {
+			int tokenttl = Integer.parseInt(tokenDurarionInSeconds);
+			int keyttl = Integer.parseInt(keyLifetimeInMinutes);
+			if (tokenttl > keyttl*60) {
+				return FormValidation.error("Token cannot last longer than key");
+			} else {
+				return FormValidation.ok();
+			}
+		} catch (NumberFormatException e) {
+			return FormValidation.error("Key lifetime and token duration must be numbers");
+		}
+	}
+
 
 	/** @return the singleton instance */
 	@Nonnull
