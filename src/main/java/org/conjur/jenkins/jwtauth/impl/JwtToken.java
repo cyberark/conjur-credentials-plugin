@@ -66,7 +66,7 @@ public class JwtToken {
             jsonWebSignature.setKeyIdHeaderValue(key.getId());
             jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
             jsonWebSignature.setHeader(HeaderParameterNames.TYPE, "JWT");
-            LOGGER.log(Level.FINEST, "Return: " + jsonWebSignature.getCompactSerialization());
+            // LOGGER.log(Level.FINEST, "Return: " + jsonWebSignature.getCompactSerialization());
             return jsonWebSignature.getCompactSerialization();
         } catch (JoseException e) {
             String msg = "Failed to sign JWT token: " + e.getMessage();
@@ -81,7 +81,9 @@ public class JwtToken {
  
     public static String getToken(String pluginAction, Object context) {
         LOGGER.log(Level.FINE, "***** Getting Token");
-        return getUnsignedToken(pluginAction, context).sign();
+        JwtToken unsignedToken = getUnsignedToken(pluginAction, context);
+        LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
+        return unsignedToken.sign();
     }
 
     public static JwtToken getUnsignedToken(String pluginAction, Object context) {
@@ -105,7 +107,11 @@ public class JwtToken {
             //     email = p.getAddress();
         }
         // Plugin plugin = Jenkins.get().getPlugin("blueocean-jwt");
-        String issuer = "conjur-jwt";
+        String issuer = Jenkins.get().getRootUrl();
+        if (issuer.substring(issuer.length() - 1).equals("/")) {
+            issuer = issuer.substring(0, issuer.length() - 1);
+        }
+        LOGGER.log(Level.FINEST, "RootURL => {0}", Jenkins.get().getRootUrl());
 
         JwtToken jwtToken = new JwtToken();
         jwtToken.claim.put("jti", UUID.randomUUID().toString().replace("-",""));

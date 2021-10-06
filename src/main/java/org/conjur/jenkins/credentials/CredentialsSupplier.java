@@ -62,7 +62,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 			// // Retrieve secret from Conjur
 			// String secretString = ConjurAPI.getSecret(client, conjurConfiguration, authToken, this.variablePath);
 			// result = secretString;
-            LOGGER.log(Level.FINEST, "authToken=" + authToken);
+            // LOGGER.log(Level.FINEST, "authToken=" + authToken);
 
             ConjurAPI.ConjurAuthnInfo conjurAuthn = ConjurAPI.getConjurAuthnInfo(conjurConfiguration, null, getContext());
 

@@ -105,9 +105,10 @@ public class ConjurAPI {
 						conjurAuthn.account, URLEncoder.encode(conjurAuthn.login, "utf-8")))
 				.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 		} else if (conjurAuthn.authnPath != null & conjurAuthn.apiKey != null) {
-			LOGGER.log(Level.FINE, "Authenticating with Conjur (JWT)");
+			String authnPath = conjurAuthn.authnPath.indexOf("/") == -1 ? "authn-jwt/" + conjurAuthn.authnPath : conjurAuthn.authnPath;
+			LOGGER.log(Level.FINE, "Authenticating with Conjur (JWT) authnPath={0}", authnPath);
 			request = new Request.Builder()
-				.url(String.format("%s/%s/%s/authenticate", conjurAuthn.applianceUrl, conjurAuthn.authnPath,
+				.url(String.format("%s/%s/%s/authenticate", conjurAuthn.applianceUrl, authnPath,
 						conjurAuthn.account))
 				.post(RequestBody.create(MediaType.parse("text/plain"), conjurAuthn.apiKey)).build();
 
