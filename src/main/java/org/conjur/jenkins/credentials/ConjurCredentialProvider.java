@@ -90,12 +90,14 @@ public class ConjurCredentialProvider extends CredentialsProvider {
                 LOGGER.log(Level.FINE, "Getting Credentials from ConjurCredentialProvider @ " + context.getClass().getName());
                 LOGGER.log(Level.FINE, "To Fetch credentials");
                 getStore(context);
-                allCredentials = currentCredentialSupplier.get();
-                return allCredentials.stream()
-                        .filter(c -> type.isAssignableFrom(c.getClass()))
-                        // cast to keep generics happy even though we are assignable
-                        .map(type::cast)
-                        .collect(Collectors.toList());
+                if (currentCredentialSupplier != null) {
+                    allCredentials = currentCredentialSupplier.get();
+                    return allCredentials.stream()
+                            .filter(c -> type.isAssignableFrom(c.getClass()))
+                            // cast to keep generics happy even though we are assignable
+                            .map(type::cast)
+                            .collect(Collectors.toList());
+                }
             }
         }
 

@@ -156,8 +156,8 @@ public class ConjurAPI {
 		// Default to Environment variables if not values present
 		defaultToEnvironment(conjurAuthn);
 
-		// Check for Just-In-time Credential Access
-		if (context != null) {
+		// Check for Just-In-time Credential Access if no login and apikey
+		if (conjurAuthn.login == null && conjurAuthn.apiKey == null && context != null) {
 			setConjurAuthnForJITCredentialAccess(context, conjurAuthn);
 		}
 
