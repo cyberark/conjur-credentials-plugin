@@ -18,6 +18,7 @@ import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 import hudson.model.AbstractItem;
 import hudson.model.Item;
 import hudson.model.ModelObject;
+import hudson.model.Run;
 import hudson.remoting.Channel;
 import hudson.security.ACL;
 import hudson.util.Secret;
@@ -61,7 +62,12 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 	static ConjurSecretCredentials credentialFromContextIfNeeded(ConjurSecretCredentials credential, String credentialID, ModelObject context) {
 		if (credential == null && context != null) {
 			getLogger().log(Level.FINE, "NOT FOUND at Jenkins Instance Level!");
-			Item folder = Jenkins.get().getItemByFullName(((AbstractItem)((AbstractItem)context).getParent()).getParent().getFullName());
+			Item folder = null;
+			if (context instanceof Run) {
+				folder = Jenkins.get().getItemByFullName(((Run<?, ?>)context).getParent().getParent().getFullName());
+			} else {
+				folder = Jenkins.get().getItemByFullName(((AbstractItem)((AbstractItem)context).getParent()).getParent().getFullName());
+			}
 			return CredentialsMatchers
 					.firstOrNull(
 							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, folder, ACL.SYSTEM,
