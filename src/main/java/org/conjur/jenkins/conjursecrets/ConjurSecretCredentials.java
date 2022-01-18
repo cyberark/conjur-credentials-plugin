@@ -11,7 +11,6 @@ import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
-import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.exceptions.InvalidConjurSecretException;
 
@@ -19,7 +18,6 @@ import hudson.model.AbstractItem;
 import hudson.model.Item;
 import hudson.model.ModelObject;
 import hudson.model.Run;
-import hudson.remoting.Channel;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
@@ -83,20 +81,13 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 		ConjurSecretCredentials credential = null;
 
-		Channel channel = Channel.current();
+		credential = CredentialsMatchers
+				.firstOrNull(
+						CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
+								ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+						CredentialsMatchers.withId(credentialID));
 
-		if (channel == null) {
-			credential = CredentialsMatchers
-					.firstOrNull(
-							CredentialsProvider.lookupCredentials(ConjurSecretCredentials.class, Jenkins.get(),
-									ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
-							CredentialsMatchers.withId(credentialID));
-
-			credential = credentialFromContextIfNeeded(credential, credentialID, context);
-		} else {
-			credential = (ConjurSecretCredentials) ConjurAPIUtils.objectFromMaster(channel,
-					new ConjurAPIUtils.NewConjurSecretCredentials(credentialID));
-		}
+		credential = credentialFromContextIfNeeded(credential, credentialID, context);
 
 
 		if (credential == null) {
