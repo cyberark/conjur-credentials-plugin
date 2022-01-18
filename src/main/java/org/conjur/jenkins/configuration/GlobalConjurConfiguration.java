@@ -1,20 +1,16 @@
 package org.conjur.jenkins.configuration;
 
 import java.io.Serializable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import hudson.Extension;
 import hudson.model.AbstractItem;
-import hudson.remoting.Channel;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 
@@ -67,15 +63,11 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	/** @return the singleton instance */
 	@Nonnull
 	public static GlobalConjurConfiguration get() {
-		Channel channel = Channel.current();
 
 		GlobalConjurConfiguration result = null;
-		if (channel == null) {
-			result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-		} else {
-			result = (GlobalConjurConfiguration) ConjurAPIUtils.objectFromMaster(channel,
-					new ConjurAPIUtils.NewGlobalConfiguration());
-		}
+
+		result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+
 		if (result == null) {
 			throw new IllegalStateException();
 		}

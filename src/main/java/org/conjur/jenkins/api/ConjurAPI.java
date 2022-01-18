@@ -26,7 +26,6 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.model.Run;
-import hudson.remoting.Channel;
 import hudson.security.ACL;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -69,29 +68,18 @@ public class ConjurAPI {
 
 		String resultingToken = null;
 
-		Channel channel = Channel.current();
-
 		List<UsernamePasswordCredentials> availableCredentials = null;
 
-		if (channel == null) {
-			availableCredentials = CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					Jenkins.get(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList());
+		availableCredentials = CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+				Jenkins.get(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList());
 
-			if (context != null) {
-				if (context instanceof Run) {
-					availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					((Run) context).getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
-				} else {
-					availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
-					(AbstractItem) context, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
-				}
-			}
-		} else {
-			try {
-				availableCredentials = channel.call(new ConjurAPIUtils.NewAvailableCredentials());
-			} catch (InterruptedException e) {
-				getLogger().log(Level.FINE, "Exception getting available credentials", e);
-				e.printStackTrace();
+		if (context != null) {
+			if (context instanceof Run) {
+				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+				((Run) context).getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
+			} else {
+				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
+				(AbstractItem) context, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
 			}
 		}
 
