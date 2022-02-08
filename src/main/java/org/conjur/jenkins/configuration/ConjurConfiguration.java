@@ -65,16 +65,19 @@ public class ConjurConfiguration extends AbstractDescribableImpl<ConjurConfigura
 		@POST
 		public FormValidation doRefreshCredentialSupplier(@AncestorInPath Item item) throws IOException, ServletException {
 						
-            String key = String.valueOf(item.hashCode());            
-            Supplier<Collection<StandardCredentials>> supplier;
-			if (ConjurCredentialStore.getAllStores().containsKey(key)) {
-                LOGGER.log(Level.FINEST, "Resetting Credential Supplier : " + item.getClass().getName() + ": " + item.toString() + " => " + item.hashCode());
-                supplier = ConjurCredentialProvider.memoizeWithExpiration(CredentialsSupplier.standard(item), Duration.ofSeconds(120));
-				ConjurCredentialProvider.getAllCredentialSuppliers().put(key, supplier);
-            }
-			return FormValidation.ok("Refreshed");
+			if (item != null) {
+				String key = String.valueOf(item.hashCode());            
+				Supplier<Collection<StandardCredentials>> supplier;
+				if (ConjurCredentialStore.getAllStores().containsKey(key)) {
+					LOGGER.log(Level.FINEST, "Resetting Credential Supplier : " + item.getClass().getName() + ": " + item.toString() + " => " + item.hashCode());
+					supplier = ConjurCredentialProvider.memoizeWithExpiration(CredentialsSupplier.standard(item), Duration.ofSeconds(120));
+					ConjurCredentialProvider.getAllCredentialSuppliers().put(key, supplier);
+				}
+				return FormValidation.ok("Refreshed");
+ 			} else {
+				 return FormValidation.ok();
+			 }
 		}
-		
 	}
 
 	/**
