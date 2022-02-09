@@ -22,6 +22,7 @@ import hudson.model.ModelObject;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 
 @NameWith(value = ConjurSecretCredentials.NameProvider.class, priority = 1)
 
@@ -94,7 +95,7 @@ public class ConjurSecretUsernameCredentialsImpl extends BaseStandardCredentials
 		}
 
 		public ListBoxModel doFillCredentialIDItems(@AncestorInPath final Item item, @QueryParameter final String uri) {
-			LOGGER.log(Level.FINE, "CONJUR SECRET CREDENTIALS DESCRIPTor");
+			Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 			return new StandardListBoxModel().includeAs(ACL.SYSTEM, item, ConjurSecretCredentials.class,
 					URIRequirementBuilder.fromUri(uri).build());
 		}

@@ -19,7 +19,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
 import hudson.model.ModelObject;
-import hudson.remoting.Channel;
 import hudson.util.Secret;
 import okhttp3.OkHttpClient;
 

@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
-import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
+import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.jwtauth.impl.JwtToken;
 
 import hudson.model.AbstractItem;
