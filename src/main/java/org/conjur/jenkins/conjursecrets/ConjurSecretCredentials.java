@@ -91,6 +91,8 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 
 
 		if (credential == null) {
+			getLogger().log(Level.FINE, String.format("Unable to find credential at %s", 
+			(context != null? context.getDisplayName() : "Global Instance Level")));
 			String contextLevel = String.format("Unable to find credential at %s", 
 												(context != null? context.getDisplayName() : "Global Instance Level"));
 			throw new InvalidConjurSecretException(contextLevel);
