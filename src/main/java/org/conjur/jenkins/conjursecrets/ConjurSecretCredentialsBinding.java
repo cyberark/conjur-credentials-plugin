@@ -6,22 +6,16 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.cloudbees.hudson.plugins.folder.AbstractFolder;
-
 import org.conjur.jenkins.credentials.ConjurCredentialStore;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
-import org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Item;
-import hudson.model.ItemGroup;
-import hudson.model.ModelObject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
@@ -59,39 +53,13 @@ public class ConjurSecretCredentialsBinding extends MultiBinding<ConjurSecretCre
 	@Override
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
-		
-		ModelObject objectToFindStore = build;
-		ConjurSecretCredentials conjurSecretCredential = null;
-
-		do {
-			try {
-				LOGGER.log(Level.FINE, "**** binding **** : " + objectToFindStore);
-				ConjurCredentialStore store = null;
-				if (objectToFindStore instanceof Run) {
-					Run<?, ?> run = (Run<?, ?>) objectToFindStore;
-					store = ConjurCredentialStore.getAllStores().get(String.valueOf(run.getParent().hashCode()));
-				}
-				if (store != null) {
-					store.getProvider().getStore(objectToFindStore);
-				}
-				conjurSecretCredential = getCredentials(build);
-				LOGGER.log(Level.FINE, "**** FOUND ID " + this.getCredentialsId() + " At Level : " + objectToFindStore);
-			} catch (CredentialNotFoundException e) {
-				if (objectToFindStore instanceof Run) {
-					Run<?, ?> run = (Run<?, ?>) objectToFindStore;
-					objectToFindStore = run.getParent().getParent();
-				} else{
-					Item g = (Item) objectToFindStore;
-					
-					objectToFindStore = g.getParent();
-					if (!(objectToFindStore instanceof AbstractFolder)) {
-						throw e;
-					}
-				}
-			}	
-		} while ((objectToFindStore instanceof AbstractFolder) && conjurSecretCredential == null);
-		
-		conjurSecretCredential.setContext(objectToFindStore);
+		LOGGER.log(Level.FINE, "**** binding **** : " + build);
+		ConjurCredentialStore store = ConjurCredentialStore.getAllStores().get(String.valueOf(build.getParent().hashCode()));
+		if (store != null) {
+			store.getProvider().getStore(build);
+		}
+		ConjurSecretCredentials conjurSecretCredential = getCredentials(build);
+		conjurSecretCredential.setContext(build);
 
 		return new MultiEnvironment(
 				Collections.singletonMap(variable, conjurSecretCredential.getSecret().getPlainText()));

@@ -17,7 +17,6 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.CertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 import org.acegisecurity.Authentication;
@@ -30,7 +29,6 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
-import hudson.model.Run;
 import hudson.security.ACL;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -43,6 +41,7 @@ public class ConjurCredentialProvider extends CredentialsProvider {
     private static final ConcurrentHashMap<String, Supplier<Collection<StandardCredentials>>> allCredentialSuppliers = new ConcurrentHashMap<String, Supplier<Collection<StandardCredentials>>> ();
 
     private Supplier<Collection<StandardCredentials>> currentCredentialSupplier;
+
 
     public <C extends Credentials> List<C> getCredentials(@Nonnull Class<C> type,
                                                           @Nullable ItemGroup itemGroup,
@@ -77,34 +76,30 @@ public class ConjurCredentialProvider extends CredentialsProvider {
                                                                         Authentication authentication) {
 
         LOGGER.log(Level.FINE, "Type: " + type.getName() + 
-            " authentication: " + authentication + " context: " + context.getDisplayName());
+            " authentication: " + authentication + " context: " + context.getDisplayName());        
 
-        // if (context == Jenkins.get() || context instanceof Run || context instanceof Item) {
-            if (!type.isInstance(CertificateCredentials.class) && (
-                (type.isInstance(ConjurSecretCredentials.class) || type == ConjurSecretUsernameCredentials.class) ||
-                type == StandardUsernamePasswordCredentials.class || 
-                type.isAssignableFrom(ConjurSecretCredentials.class) || 
-                type.isAssignableFrom(ConjurSecretUsernameSSHKeyCredentials.class))) {
-   
-               LOGGER.log(Level.FINE, "*****");
-               if (ACL.SYSTEM.equals(authentication)) {
-                   Collection<StandardCredentials> allCredentials = Collections.emptyList();
-                   LOGGER.log(Level.FINE, "**** getCredentials ConjurCredentialProvider: " + this.getId() + " : " + this );
-                   LOGGER.log(Level.FINE, "Getting Credentials from ConjurCredentialProvider @ " + context.getClass().getName());
-                   LOGGER.log(Level.FINE, "To Fetch credentials");
-                   getStore(context);
-                   if (currentCredentialSupplier != null) {
-                       LOGGER.log(Level.FINE, "currentCredentialSupplier is NOT NULL");
-                       allCredentials = currentCredentialSupplier.get();
-                       return allCredentials.stream()
-                               .filter(c -> type.isAssignableFrom(c.getClass()))
-                               // cast to keep generics happy even though we are assignable
-                               .map(type::cast)
-                               .collect(Collectors.toList());
-                   }
-               }
-           }
-        // }
+        if (!type.isInstance(CertificateCredentials.class) && (
+             (type.isInstance(ConjurSecretCredentials.class) || type == ConjurSecretUsernameCredentials.class) ||
+             type.isAssignableFrom(ConjurSecretCredentials.class) || 
+             type.isAssignableFrom(ConjurSecretUsernameSSHKeyCredentials.class))) {
+
+            LOGGER.log(Level.FINE, "*****");
+            if (ACL.SYSTEM.equals(authentication)) {
+                Collection<StandardCredentials> allCredentials = Collections.emptyList();
+                LOGGER.log(Level.FINE, "**** getCredentials ConjurCredentialProvider: " + this.getId() + " : " + this );
+                LOGGER.log(Level.FINE, "Getting Credentials from ConjurCredentialProvider @ " + context.getClass().getName());
+                LOGGER.log(Level.FINE, "To Fetch credentials");
+                getStore(context);
+                if (currentCredentialSupplier != null) {
+                    allCredentials = currentCredentialSupplier.get();
+                    return allCredentials.stream()
+                            .filter(c -> type.isAssignableFrom(c.getClass()))
+                            // cast to keep generics happy even though we are assignable
+                            .map(type::cast)
+                            .collect(Collectors.toList());
+                }
+            }
+        }
 
         return Collections.emptyList();
     }
@@ -119,11 +114,9 @@ public class ConjurCredentialProvider extends CredentialsProvider {
             return null;
         }
 
-        // if (object == Jenkins.get()) {
-        //     LOGGER.log(Level.FINE, "No Store returned because at Jenkins instance level");
-        //     currentCredentialSupplier = null;
-        //     return null;
-        // }
+        if (object == Jenkins.get()) {
+            return null;
+        }
         
         ConjurCredentialStore store = null;
         Supplier<Collection<StandardCredentials>> supplier = null;
@@ -131,12 +124,12 @@ public class ConjurCredentialProvider extends CredentialsProvider {
         if (object != null) {
             String key = String.valueOf(object.hashCode());            
             if (ConjurCredentialStore.getAllStores().containsKey(key)) {
-                LOGGER.log(Level.FINEST, "GetStore EXISTING ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
+                // LOGGER.log(Level.FINEST, "GetStore EXISTING ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
                 store = ConjurCredentialStore.getAllStores().get(key);
             } else {
-                LOGGER.log(Level.FINEST, "GetStore NEW ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
+                // LOGGER.log(Level.FINEST, "GetStore NEW ConjurCredentialProvider : " + object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
                 store = new ConjurCredentialStore(this, object);
-                supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(1200));
+                supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(120));
                 ConjurCredentialStore.getAllStores().put(key, store);
                 allCredentialSuppliers.put(key, supplier);
             }    

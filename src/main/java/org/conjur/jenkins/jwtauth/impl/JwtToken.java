@@ -82,8 +82,7 @@ public class JwtToken {
     public static String getToken(String pluginAction, Object context) {
         LOGGER.log(Level.FINE, "***** Getting Token");
         JwtToken unsignedToken = getUnsignedToken(pluginAction, context);
-        if (unsignedToken == null) return null;
-        // LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
+        LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
         return unsignedToken.sign();
     }
 

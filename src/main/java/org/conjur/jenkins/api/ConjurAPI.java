@@ -216,15 +216,12 @@ public class ConjurAPI {
         Item contextObject = null;
 		ConjurJITJobProperty conjurJobConfig = null;
 
-		LOGGER.log(Level.FINEST, "Effective Context: " + effectiveContext);
 
         if (effectiveContext instanceof Run) {
-			LOGGER.log(Level.FINEST, "Instance of Run");
             Run run = (Run) effectiveContext;
 			conjurJobConfig = (ConjurJITJobProperty) run.getParent().getProperty(ConjurJITJobProperty.class);
             contextObject = run.getParent();
         } else if (effectiveContext instanceof AbstractItem) {
-			LOGGER.log(Level.FINEST, "Instance of AbstractItem");
 			contextObject = (Item) effectiveContext;
 		}
 
@@ -232,24 +229,19 @@ public class ConjurAPI {
 		ConjurConfiguration conjurConfig = GlobalConjurConfiguration.get().getConjurConfiguration();
 
 		if (effectiveContext == null) {
-			LOGGER.log(Level.FINEST, "Using Global Configuration");
 			return ConjurAPI.logConjurConfiguration(conjurConfig);
 		}
 
 		if (conjurJobConfig != null && !conjurJobConfig.getInheritFromParent()) {
 			// Taking the configuration from the Job
-			LOGGER.log(Level.FINEST, "Taking configuration from Job definition");
 			return ConjurAPI.logConjurConfiguration(conjurJobConfig.getConjurConfiguration());
 		}
 
 		ConjurConfiguration inheritedConfig = inheritedConjurConfiguration(contextObject);
 		if (inheritedConfig != null) {
-			LOGGER.log(Level.FINEST, "Inherited Configuration");
 			return ConjurAPI.logConjurConfiguration(inheritedConfig);
 		}
 
-
-		LOGGER.log(Level.FINEST, "Using Global Configuration ***");
 		return ConjurAPI.logConjurConfiguration(conjurConfig);
 
 	}
