@@ -11,8 +11,8 @@
     <artifactId>conjur-credentials</artifactId>
     <packaging>hpi</packaging>
     <properties>
-        <jenkins.version>2.204</jenkins.version>
-        <java.level>8</java.level>
+        <jenkins.version>2.346.3</jenkins.version>
+      
         <!-- <hpi.compatibleSinceVersion>2.0.0</hpi.compatibleSinceVersion> -->
     </properties>
     <name>Conjur Secrets Plugin</name>
@@ -79,27 +79,36 @@
         </dependency>
 		<!--  UNIREST -->
 		<dependency>
-		    <groupId>io.github.openunirest</groupId>
+	        <groupId>io.github.openunirest</groupId>
 		    <artifactId>unirest-java</artifactId>
-		    <version>3.3.06</version>
-		</dependency>
+		    <version>2.5.03</version>
+	    </dependency>
+	    
+	     <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-common</artifactId>
+            <version>1.4.10</version>
+        </dependency>
+	    
+	    	
 		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
 		<dependency>
 		    <groupId>com.squareup.okhttp3</groupId>
 		    <artifactId>okhttp</artifactId>
-		    <version>3.11.0</version>
+		    <version>4.9.3</version>
 		</dependency>
+	
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <!-- <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency> -->
 <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<dependency>
-    <groupId>com.fasterxml.jackson.core</groupId>
-    <artifactId>jackson-databind</artifactId>
-    <version>2.12.5</version>
-</dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>2.14.0</version>
+		</dependency>
 
 
         <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins/jackson2-api -->
