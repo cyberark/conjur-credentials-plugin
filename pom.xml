@@ -12,7 +12,7 @@
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.377</jenkins.version>   
-	<java.level>11</java.level>
+	    <java.level>11</java.level>
         <!-- <hpi.compatibleSinceVersion>2.0.0</hpi.compatibleSinceVersion> -->
     </properties>
     <name>Conjur Secrets Plugin</name>
@@ -131,4 +131,12 @@
         </dependency>
         </dependencies>
     </dependencyManagement>
+    <profiles>
+    <profile>
+      <id>jdk-9-and-above</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+    </profile>
+</profiles>
   </project>
