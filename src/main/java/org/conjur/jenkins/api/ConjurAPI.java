@@ -165,7 +165,6 @@ public class ConjurAPI {
 
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
 		String variablePath) throws IOException {
-		String result = null;
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, null, null);
 
@@ -175,7 +174,7 @@ public class ConjurAPI {
 				.get().addHeader("Authorization", "Token token=\"" + authToken + "\"").build();
 
 		Response response = client.newCall(request).execute();
-		result = response.body().string();
+		String result = response.body().string();
 		LOGGER.log(Level.FINEST, () -> "Fetch secret [" + variablePath + "] from Conjur response " + response.code()
 				+ " - " + response.message());
 		if (response.code() != 200) {
