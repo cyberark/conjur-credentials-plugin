@@ -15,6 +15,8 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
@@ -63,6 +65,7 @@ public class ConjurAPI {
 			conjurAuthn.apiKey = env.get("CONJUR_AUTHN_API_KEY");
 	}
 
+	@SuppressFBWarnings
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration,
 			ModelObject context) throws IOException {
 
@@ -163,9 +166,9 @@ public class ConjurAPI {
 		}		
 	}
 
+	@SuppressFBWarnings
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
 		String variablePath) throws IOException {
-		String result = null;
 
 		ConjurAuthnInfo conjurAuthn = getConjurAuthnInfo(configuration, null, null);
 
@@ -175,7 +178,7 @@ public class ConjurAPI {
 				.get().addHeader("Authorization", "Token token=\"" + authToken + "\"").build();
 
 		Response response = client.newCall(request).execute();
-		result = response.body().string();
+		String result = response.body().string();
 		LOGGER.log(Level.FINEST, () -> "Fetch secret [" + variablePath + "] from Conjur response " + response.code()
 				+ " - " + response.message());
 		if (response.code() != 200) {
