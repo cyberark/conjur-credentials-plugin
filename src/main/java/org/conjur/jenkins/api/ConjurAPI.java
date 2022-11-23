@@ -15,6 +15,8 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.conjur.jenkins.configuration.ConjurConfiguration;
 import org.conjur.jenkins.configuration.ConjurJITJobProperty;
 import org.conjur.jenkins.configuration.FolderConjurConfiguration;
@@ -63,6 +65,7 @@ public class ConjurAPI {
 			conjurAuthn.apiKey = env.get("CONJUR_AUTHN_API_KEY");
 	}
 
+	@SuppressFBWarnings
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration,
 			ModelObject context) throws IOException {
 
@@ -163,6 +166,7 @@ public class ConjurAPI {
 		}		
 	}
 
+	@SuppressFBWarnings
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
 		String variablePath) throws IOException {
 
