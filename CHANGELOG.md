@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+##[1.0.13] - 2022-11-23
+- Security updates in pom.xml & support to Java 11. The following depedency updates are made:
+- org.jenkins-ci.plugins is updated from 4.17 to 4.48
+- Jenkins version has been updated from 2.176.1 to 2.377
+- kotlin-stdlib-common updated to 1.6.20
+- okhttp has been updated from 3.11.0 to 4.10.0
+- jackson-databind has been updated from 2.12.5 to 2.14.0
+- gsom from 2.8.8 to 2.8.9
+- io.jenkins.tools.bom artifact id updated from bom-2.164.x to bom-2.332.x
+
 ##[1.0.7] - 2021-10-05
 - JWT token issuer is set to the root URL of the jenkins instance
 - WebService ID for the authentication can be either the service id or authenticator_type/service_id (authn-jwt/id)
