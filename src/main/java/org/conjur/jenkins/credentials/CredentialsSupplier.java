@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
@@ -44,6 +46,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
         return new CredentialsSupplier(context);
     }
 
+	@SuppressFBWarnings
     @Override
     public Collection<StandardCredentials> get() {
 
