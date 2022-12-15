@@ -76,7 +76,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			// Get Http Client
 			OkHttpClient client = ConjurAPIUtils.getHttpClient(this.conjurConfiguration);
 			// Authenticate to Conjur
-			String authToken = ConjurAPI.getAuthorizationToken(client, this.conjurConfiguration, context);
+			String authToken = ConjurAPI.getAuthorizationToken(client, this.conjurConfiguration, storeContext);
 			// Retrieve secret from Conjur
 			String secretString = ConjurAPI.getSecret(client, this.conjurConfiguration, authToken, this.variablePath);
 			result = secretString;
@@ -105,7 +105,7 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 
 	public void setStoreContext(ModelObject storeContext) {
 		LOGGER.log(Level.FINEST, "Setting store context");
-		this.context = storeContext;
+		this.storeContext = storeContext;
 		setConjurConfiguration(ConjurAPI.getConfigurationFromContext(context, storeContext));
 	}
 
