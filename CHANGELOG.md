@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.1] - 2023-03-23
+- Updated to support Jenkins version 2.346.3 & above.
+- Supports configuration & integration of SCM Plugins for using Conjur Credentials.
+
 ## [1.0.14] - 2022-12-15
 - Support access of Folder level crdentials to child folders & jobs.
--
+
 ## [1.0.13] - 2022-11-23
 - Security updates in pom.xml & support to Java 11. The following depedency updates are made:
 - org.jenkins-ci.plugins is updated from 4.17 to 4.48
