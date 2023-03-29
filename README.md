@@ -2,6 +2,8 @@
 
 # conjur-credentials-plugin
 
+**This repo is no longer maintained. See https://github.com/jenkinsci/conjur-credentials-plugin for the latest code!**
+
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
 
 ## Reference
