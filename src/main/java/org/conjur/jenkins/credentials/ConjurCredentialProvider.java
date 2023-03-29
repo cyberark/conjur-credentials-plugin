@@ -172,24 +172,12 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 					LOGGER.log(Level.FINEST, "GetStore EXISTING ConjurCredentialProvider : "
 							+ object.getClass().getName() + ": " + object.toString() + " => " + object.hashCode());
 					store = ConjurCredentialStore.getAllStores().get(key);
-//					//Job job = (Job) object;
-//					ItemGroup item = job.getParent();
-//					if (item != null) {
-//						String parentKey = String.valueOf(item.hashCode());
-//
-//						parentStore = ConjurCredentialStore.getAllStores().get(parentKey);
-//						supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(120));
-//						supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(120));
-//						allCredentialSuppliers.put(parentKey, supplier);
-//						LOGGER.log(Level.FINE,
-//								"Parent Key not null" + item + "Key" + parentKey + "ParentStore>>>" + parentStore);
-//					}
+
 
 					LOGGER.log(Level.FINEST, "All Store detaials" + store);
 
 				} else {
-//					LOGGER.log(Level.FINEST, "GetStore NEW ConjurCredentialProvider : " + object.getClass().getName()
-//							+ ": " + object.toString() + " => " + object.hashCode());
+					
 					store = new ConjurCredentialStore(this, object);
 					supplier = memoizeWithExpiration(CredentialsSupplier.standard(object), Duration.ofSeconds(120));
 					ConjurCredentialStore.getAllStores().put(key, store);
