@@ -1,0 +1,45 @@
+
+# This workflow uses code from the official plugin publication process, but reduces
+# it to only the steps necessary to publish to artifactory, as the github
+# release will be created by an internal process.
+
+name: Publish Plugin
+on:
+  check_suite:
+    types: [completed]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.verify-ci-status.outputs.result == 'success' }}
+    steps:
+      - name: Verify CI status
+        uses: jenkins-infra/verify-ci-status-action@v1.2.2
+        id: verify-ci-status
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          output_result: true
+
+  publish-plugin:
+    run-on: ubuntu-latest
+    needs: [validate]
+    if: needs.validate.outputs.should_publish == 'true'
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - run: |
+          export MAVEN_OPTS=-Djansi.force=true
+          mvn -B -V -e -s .github/workflow-assets/settings.xml -ntp -Dstyle.color=always -Dset.changelist -DaltDeploymentRepository=maven.jenkins-ci.org::default::https://repo.jenkins-ci.org/releases/ -Pquick-build clean deploy
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
