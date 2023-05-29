@@ -2,17 +2,17 @@ package org.conjur.jenkins.configuration;
 
 import java.io.IOException;
 
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.CredentialsStore;
-import com.cloudbees.plugins.credentials.domains.Domain;
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-
 import org.conjur.jenkins.conjursecrets.ConjurSecretCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.domains.Domain;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 
 import jenkins.model.GlobalConfiguration;
 
@@ -26,21 +26,7 @@ public class ConjurConfigurationTest {
 
 		CredentialsStore store = CredentialsProvider.lookupStores(j.jenkins).iterator().next();
 
-		/*
-		// Setup Conjur SSL Certificate
-		try {
-			byte[] keyStoreBytes = FileUtils.readFileToByteArray(new File("c:\\conjur.p12"));
-			byte[] keyStore = Base64.getEncoder().encode(keyStoreBytes);
-			CertificateCredentialsImpl credentials = new CertificateCredentialsImpl(CredentialsScope.GLOBAL,
-					"Conjur-Master-Certificate", "Certificate for Conjur-master", "Cyberark1",
-					new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keyStore)));
-
-			store.addCredentials(Domain.global(), credentials);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		*/
-
+	
 		// Setup Conjur login credentials
 		UsernamePasswordCredentialsImpl conjurCredentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL,
 				"conjur-login", "Login Credential to Conjur", "host/frontend/frontend-01",

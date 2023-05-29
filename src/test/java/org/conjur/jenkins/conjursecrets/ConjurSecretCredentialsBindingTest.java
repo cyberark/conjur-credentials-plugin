@@ -26,21 +26,6 @@ public class ConjurSecretCredentialsBindingTest {
 	@Mock
 	public ConjurSecretCredentialsBinding binding;
 
-//	@Before
-//	public void setupConjur() {
-//
-//		store = CredentialsProvider.lookupStores(j.jenkins).iterator().next();
-//
-//		// Setup Conjur login credentials
-//		UsernamePasswordCredentialsImpl conjurCredentials = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL,
-//				"conjur-login", "Login Credential to Conjur", "host/frontend/frontend-01",
-//				"1vpn19h1j621711qm1c9mphkkqw2y35v283h1bccxb028w06t94st");
-//		try {
-//			store.addCredentials(Domain.global(), conjurCredentials);
-//		} catch (IOException e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
 
 	@Test
 	public void testBind() throws IOException, InterruptedException {

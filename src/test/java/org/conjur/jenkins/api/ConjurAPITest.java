@@ -16,7 +16,6 @@ import org.conjur.jenkins.jwtauth.impl.JwtToken;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -26,12 +25,7 @@ import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 
 import hudson.model.ModelObject;
 import okhttp3.Call;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ConjurAPI.class, JwtToken.class , ConjurAPIUtils.class})
@@ -64,33 +58,13 @@ public class ConjurAPITest {
 	public void getConjurAuthnInfo() {
 		ConjurAuthnInfo conjurAuthn = new ConjurAuthnInfo();
 
-//		try (MockedStatic<ConjurAPI> mockStatic = Mockito.mockStatic(ConjurAPI.class)) {
-//
-//			mockStatic.when(() -> ConjurAPI.getConjurAuthnInfo(any(), any(), any())).thenReturn(conjurConfiguration);
-//			mockStatic.verify(() -> ConjurAPI.getConjurAuthnInfo(conjurConfiguration, availableCredential, context));
-//		}
-
-		// PowerMockito.mockStatic(ConjurAPI.class);
-
 		when(ConjurAPI.getConjurAuthnInfo(any(), any(), any())).thenReturn(conjurAuthn);
 		assertTrue(ConjurAPI.getConjurAuthnInfo(any(), any(), any()) instanceof ConjurAuthnInfo);
 	}
 
 	@Test
 	public void checkAuthentication() throws IOException {
-//
-//		try (MockedStatic<JwtToken> mockStatic = Mockito.mockStatic(JwtToken.class)) {
-//			mockStatic.when(() -> JwtToken.getToken(context)).thenReturn(
-//					"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
-//		}
-//
-//		try (MockedStatic<ConjurAPI> mock = Mockito.mockStatic(ConjurAPI.class)) {
-//
-//			mock.when(() -> ConjurAPI.getAuthorizationToken(client, conjurConfiguration, context))
-//					.thenReturn("success");
-//			mock.verify(() -> ConjurAPI.getConjurAuthnInfo(conjurConfiguration, availableCredential, context));
-//		}
-//		assertThat(ConjurAPI.getAuthorizationToken(client, conjurConfiguration, context)).isEqualTo("success");
+
 
 		PowerMockito.mockStatic(JwtToken.class);
 
@@ -104,13 +78,6 @@ public class ConjurAPITest {
 	@Test
 	public void checkSecretVal() throws IOException {
 		
-//		Request request = new Request.Builder()
-//				.url(String.format("%s/secrets/%s/variable/%s", "https://localhost:8443", "myConjurAccount",
-//						"host/jenkins-frontend/NG-NITIN-M.local"))
-//				.get().addHeader("Authorization", "Token token=\"" + "authToken" + "\"").build();
-//		when(client.newCall(request).execute()).thenReturn(mockHttpResponse());
-//		when(remoteCall.execute()).thenReturn(mockHttpResponse());
-//		when(client.newCall(any())).thenReturn(remoteCall);
 		when(ConjurAPI.getSecret(client, conjurConfiguration, "auth-token", "host/frontend/frontend-01"))
 				.thenReturn("bhfbdbkfbkd-bvjdbfbjbv-bfjbdbjkb-bbfkbskb");
 		assertEquals(ConjurAPI.getSecret(client, conjurConfiguration, "auth-token", "host/frontend/frontend-01"),
