@@ -23,12 +23,9 @@ public class ConjurCredentialProviderTest {
 
 	@Test
 	public void getStoreTest() {
-
 		ConjurCredentialStore store = null;
-		
-		
 		 when(provider.getStore(any())).thenReturn(store);
-		  assertFalse(provider.getStore(any()) instanceof ConjurCredentialStore);
+		 assertFalse(provider.getStore(any()) instanceof ConjurCredentialStore);
 	}
 
 	@Test(expected = RuntimeException.class)

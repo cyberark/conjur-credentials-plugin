@@ -32,7 +32,6 @@ public class ConjurSecretCredentialsBindingTest {
 
 		Map<String, String> secretVals=new HashMap<>();
 		MultiEnvironment env = new MultiEnvironment(secretVals);
-
 		when(binding.bind(any(), any(), any(), any())).thenReturn(env);
 		assertTrue(binding.bind(any(), any(), any(), any()) instanceof MultiEnvironment);
 	}
