@@ -1,19 +1,18 @@
-package org.conjur.jenkins.apiTest;
+package org.conjur.jenkins.conjursecrets;
 
 
 import static org.mockito.Mockito.mock;
+
 import java.io.IOException;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.model.ModelObject;
-
-import org.conjur.jenkins.conjursecrets.ConjurSecretCredentials;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 
 

@@ -1,4 +1,4 @@
-package org.conjur.jenkins.apiTest;
+package org.conjur.jenkins.jwtauthimpl;
 
 import static org.mockito.Mockito.mock;
 

@@ -1,8 +1,7 @@
-package org.conjur.jenkins.apiTest;
+package org.conjur.jenkins.conjursecrets;
 
 import static org.mockito.Mockito.mock;
 
-import org.conjur.jenkins.conjursecrets.ConjurSecretCredentialsImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;

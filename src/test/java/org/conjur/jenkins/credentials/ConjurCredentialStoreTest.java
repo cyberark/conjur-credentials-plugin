@@ -1,13 +1,11 @@
-package org.conjur.jenkins.apiTest;
+package org.conjur.jenkins.credentials;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 
 import org.conjur.jenkins.conjursecrets.ConjurSecretCredentialsImpl;
-import org.conjur.jenkins.credentials.ConjurCredentialStore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
