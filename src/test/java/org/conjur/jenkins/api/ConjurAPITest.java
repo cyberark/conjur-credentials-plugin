@@ -41,6 +41,8 @@ public class ConjurAPITest {
 	public Call remoteCall;
 	public ConjurAPI api;
 	public List<UsernamePasswordCredentials> availableCredential;
+	
+	
 
 	@Before
 	public void setUp() throws IOException {
