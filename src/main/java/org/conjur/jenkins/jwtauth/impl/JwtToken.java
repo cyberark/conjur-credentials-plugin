@@ -59,14 +59,12 @@ public class JwtToken {
         LOGGER.log(Level.FINE, "Signing Token");
         try {
             JsonWebSignature jsonWebSignature = new JsonWebSignature();
-            // RSAPrivateKey k = InstanceIdentity.get().getPrivate();
             JwtRsaDigitalSignatureKey key = getCurrentSigningKey(this);
             jsonWebSignature.setPayload(claim.toString());
             jsonWebSignature.setKey(key.toSigningKey());
             jsonWebSignature.setKeyIdHeaderValue(key.getId());
             jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
             jsonWebSignature.setHeader(HeaderParameterNames.TYPE, "JWT");
-            // LOGGER.log(Level.FINEST, "Return: " + jsonWebSignature.getCompactSerialization());
             return jsonWebSignature.getCompactSerialization();
         } catch (JoseException e) {
             String msg = "Failed to sign JWT token: " + e.getMessage();
@@ -102,11 +100,8 @@ public class JwtToken {
         if(user != null) {
             fullName = user.getFullName();
             userId = user.getId();
-            // Mailer.UserProperty p = user.getProperty(Mailer.UserProperty.class);
-            // if(p!=null)
-            //     email = p.getAddress();
+          
         }
-        // Plugin plugin = Jenkins.get().getPlugin("blueocean-jwt");
         String issuer = Jenkins.get().getRootUrl();
         if (issuer.substring(issuer.length() - 1).equals("/")) {
             issuer = issuer.substring(0, issuer.length() - 1);
@@ -197,7 +192,6 @@ public class JwtToken {
         Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
         while(iterator.hasNext()) {
             JwtRsaDigitalSignatureKey key = iterator.next();
-            // LOGGER.log(Level.FINE, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime() + " max_key_time_in_sec: " + max_key_time_in_sec + " exp: " + jwtToken.claim.getLong("exp"));
             if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
                 if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
                     result = key;
@@ -219,7 +213,6 @@ public class JwtToken {
 
     protected static JSONObject getJwkset() {
 
-        // RSAPublicKey k = InstanceIdentity.get().getPublic();
 
         JSONObject jwks = new JSONObject();
         JSONArray keys = new JSONArray();
@@ -231,7 +224,6 @@ public class JwtToken {
         Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
         while(iterator.hasNext()) {
             JwtRsaDigitalSignatureKey key = iterator.next();
-            // LOGGER.log(Level.FINE, "currentTime: " + currentTime + " creationTime: " + key.getCreationTime());
             if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
                 JSONObject jwk = new JSONObject();
                 jwk.put("kty", "RSA");

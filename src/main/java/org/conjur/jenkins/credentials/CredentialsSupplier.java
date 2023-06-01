@@ -26,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import hudson.model.ModelObject;
-// import net.sf.json.JSONObject;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -62,11 +61,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 			OkHttpClient client = ConjurAPIUtils.getHttpClient(conjurConfiguration);
 			// Authenticate to Conjur
 			String authToken = ConjurAPI.getAuthorizationToken(client, conjurConfiguration, getContext());
-			// // Retrieve secret from Conjur
-			// String secretString = ConjurAPI.getSecret(client, conjurConfiguration, authToken, this.variablePath);
-			// result = secretString;
-            // LOGGER.log(Level.FINEST, "authToken=" + authToken);
-
+			 // Retrieve secret from Conjur
             ConjurAPI.ConjurAuthnInfo conjurAuthn = ConjurAPI.getConjurAuthnInfo(conjurConfiguration, null, getContext());
 
             LOGGER.log(Level.FINE, "Fetching variables from Conjur");
@@ -139,7 +134,6 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
 		} catch (IOException e) {
 			LOGGER.log(Level.FINE, "EXCEPTION: CredentialSuplier => " + e.getMessage());
-			// throw new InvalidConjurSecretException(e.getMessage(), e);
 		}
 
         return allCredentials.stream()

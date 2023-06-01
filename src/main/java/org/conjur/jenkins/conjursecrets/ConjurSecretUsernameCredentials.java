@@ -7,7 +7,6 @@ import org.conjur.jenkins.configuration.ConjurConfiguration;
 import hudson.model.ModelObject;
 import hudson.util.Secret;
 
-// @NameWith(value = ConjurSecretUsernameCredentials.NameProvider.class, priority = 1)
 
 public interface ConjurSecretUsernameCredentials extends StandardUsernamePasswordCredentials, ConjurSecretCredentials {
 

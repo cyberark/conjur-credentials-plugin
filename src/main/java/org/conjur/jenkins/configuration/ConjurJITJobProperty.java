@@ -12,18 +12,7 @@ import jenkins.model.Jenkins;
 
 public class ConjurJITJobProperty<T extends Job<?, ?>> extends JobProperty<T> {
     
-//    private static final Logger LOGGER = Logger.getLogger(ConjurJITJobProperty.class.getName());
 
-	// Expose the following in the Resource Jelly to enable 
-	// <f:entry title="Use Just-In-Time --JIT-- Secret Access" description="If checked, The Job identity will be used to authenticate to Conjur during execution of the job. You don't need to select a Conjur Auth Credential ">
-	// 	<f:checkbox name="useJustInTime" field="useJustInTime" default="false" checked="${useJustInTime}"/>
-	// </f:entry>
-	// <f:entry title="${%Auth WebService ID}">
-	// 	<f:textbox field="authWebServiceId" name="authWebServiceId"/>
-	// </f:entry>
-	// <f:entry title="${%Host Authentication Prefix}">
-	// 	<f:textbox field="hostPrefix" name="hostPrefix"/>
-	// </f:entry>
 
 	private static final String DISPLAY_NAME = "Conjur Just-In-Time Access";
 

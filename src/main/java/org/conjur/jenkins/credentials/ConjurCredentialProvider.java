@@ -94,7 +94,6 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 				LOGGER.log(Level.FINE, "To Fetch credentials");
 
 				getStore(context);
-				// getStore((ModelObject) ((Run)context).getParent());
 
 				if (currentCredentialSupplier != null) {
 					LOGGER.log(Level.FINE, "Iniside current credentialsupplier>>>>" + currentCredentialSupplier);
@@ -162,7 +161,6 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 		}
 
 		if (object != null) {
-			//LOGGER.log(Level.FINE, "Object not null" + object);
 
 			String key = String.valueOf(object.hashCode());
 			LOGGER.log(Level.FINE, "Object Key not null" + object.getDisplayName() + "Key" + key);
@@ -187,8 +185,6 @@ public class ConjurCredentialProvider extends CredentialsProvider {
 
 				currentCredentialSupplier = allCredentialSuppliers.get(key);
 
-				//LOGGER.log(Level.FINE, "currentCredentialSupplier final" + currentCredentialSupplier.get());
-				//LOGGER.log(Level.FINE, "Store details>>>" + store.getContextDisplayName());
 
 			} catch (Exception ex) {
 				LOGGER.log(Level.FINE, ex.getMessage());
