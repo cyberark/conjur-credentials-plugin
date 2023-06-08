@@ -42,7 +42,13 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	}
 
 
-
+    /**
+     * Validates the JWT token time to live.
+     * @param anc
+     * @param tokenDurarionInSeconds
+     * @param keyLifetimeInMinutes
+     * @return
+     */
 	public FormValidation doCheckTokenDurarionInSeconds(@AncestorInPath AbstractItem anc,
 														@QueryParameter("tokenDurarionInSeconds") String tokenDurarionInSeconds,
 														@QueryParameter("keyLifetimeInMinutes") String keyLifetimeInMinutes) {

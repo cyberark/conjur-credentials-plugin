@@ -68,7 +68,9 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 	static Secret secretFromString(String secretString) {
 		return Secret.fromString(secretString);
 	}
-
+    /**
+     * Creates the Http client, authenticates and then brings the value from conjur.  
+     */
 	public Secret getSecret() {
 
 		String result = "";

@@ -76,14 +76,26 @@ public class JwtToken {
     public static String getToken(Object context) {
         return getToken("SecretRetrieval", context);
     }
- 
+    
+    /**
+     * Brings the JWT token from the configuration parameters.
+     * @param pluginAction
+     * @param context
+     * @return
+     */
     public static String getToken(String pluginAction, Object context) {
         LOGGER.log(Level.FINE, "***** Getting Token");
         JwtToken unsignedToken = getUnsignedToken(pluginAction, context);
         LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
         return unsignedToken.sign();
     }
-
+    
+    /**
+     * Brings the unsigned JWT Token from configuration parameters. 
+     * @param pluginAction
+     * @param context
+     * @return
+     */
     public static JwtToken getUnsignedToken(String pluginAction, Object context) {
         GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
         if (globalConfig == null || !globalConfig.getEnableJWKS()) {

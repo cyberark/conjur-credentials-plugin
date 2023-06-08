@@ -77,6 +77,11 @@ public class ConjurAPIUtils {
 		return client;
 
 	}
+	/**
+	 * Helper method for creating Http client.
+	 * @param configuration
+	 * @return
+	 */
 
 	public static OkHttpClient getHttpClient(ConjurConfiguration configuration) {
 

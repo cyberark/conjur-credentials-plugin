@@ -64,6 +64,14 @@ public class ConjurAPI {
 		if (conjurAuthn.apiKey == null && env.containsKey("CONJUR_AUTHN_API_KEY"))
 			conjurAuthn.apiKey = env.get("CONJUR_AUTHN_API_KEY");
 	}
+	/**
+	 * This method authenticates the configuration value with conjur vault
+	 * @param client
+	 * @param configuration
+	 * @param context
+	 * @return token
+	 * @throws IOException
+	 */
 
 	@SuppressFBWarnings
 	public static String getAuthorizationToken(OkHttpClient client, ConjurConfiguration configuration,
@@ -123,7 +131,13 @@ public class ConjurAPI {
 
 		return resultingToken;
 	}
-
+		/**
+		 * Setup the auth info class obj from configuration parameters
+		 * @param configuration
+		 * @param availableCredentials
+		 * @param context
+		 * @return
+		 */
 	public static ConjurAuthnInfo getConjurAuthnInfo(ConjurConfiguration configuration,
 			List<UsernamePasswordCredentials> availableCredentials, ModelObject context) {
 		ConjurAuthnInfo conjurAuthn = new ConjurAuthnInfo();
@@ -167,7 +181,16 @@ public class ConjurAPI {
 			conjurAuthn.apiKey = "jwt=" + token;
 		}		
 	}
-
+	
+    /**
+     * Brings the secret value from the vault
+     * @param client
+     * @param configuration
+     * @param authToken
+     * @param variablePath
+     * @return
+     * @throws IOException
+     */
 	@SuppressFBWarnings
 	public static String getSecret(OkHttpClient client, ConjurConfiguration configuration, String authToken,
 		String variablePath) throws IOException {
@@ -190,7 +213,11 @@ public class ConjurAPI {
 
 		return result;
 	}
-
+	/**
+	 * Prints the configuration values in the logs.
+	 * @param conjurConfiguration
+	 * @return
+	 */
 	public static ConjurConfiguration logConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		if (conjurConfiguration != null) {
 			LOGGER.log(Level.FINEST, "Conjur configuration provided");
@@ -214,6 +241,12 @@ public class ConjurAPI {
 		}
 	}
 
+	/**
+	 * Brings the configuration values from the jenkins model. 
+	 * @param context
+	 * @param storeContext
+	 * @return
+	 */
 	public static ConjurConfiguration getConfigurationFromContext(ModelObject context, ModelObject storeContext) {
 
 		ModelObject effectiveContext = context != null? context : storeContext;
