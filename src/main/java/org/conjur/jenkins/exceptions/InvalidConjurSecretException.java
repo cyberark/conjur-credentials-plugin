@@ -1,19 +1,33 @@
 package org.conjur.jenkins.exceptions;
 
-public class InvalidConjurSecretException 
-  extends RuntimeException {
-    
-    /**
-   *
-   */
-  private static final long serialVersionUID = 1L;
+/**
+ * Custom Exception if no secert is found or malformed authentication
+ * 
+ * @author Jaleela.FaizurRahman
+ *
+ */
+public class InvalidConjurSecretException extends RuntimeException {
 
-  public InvalidConjurSecretException(String errorMessage, Throwable err) {
-        super(errorMessage, err);
-    }
+	private static final long serialVersionUID = 1L;
 
-    public InvalidConjurSecretException(String errorMessage) {
-        super(errorMessage);
-    }
+	/**
+	 * Throw error message if secret is not found
+	 * 
+	 * @param errorMessage
+	 * @param err
+	 */
+	public InvalidConjurSecretException(String errorMessage, Throwable err) {
+		super(errorMessage, err);
+	}
+
+	/**
+	 * throws error message if secret is not found
+	 * 
+	 * @param errorMessage
+	 */
+
+	public InvalidConjurSecretException(String errorMessage) {
+		super(errorMessage);
+	}
 
 }

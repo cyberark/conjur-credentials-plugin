@@ -29,10 +29,11 @@ import okhttp3.OkHttpClient;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ConjurAPI.class, JwtToken.class , ConjurAPIUtils.class})
-@PowerMockIgnore({ "javax.management.", "com.sun.org.apache.xerces.", "javax.xml.", "org.xml.", "org.w3c.dom.",
+@PowerMockIgnore({ "javax.management.", "com.sun.org.apache.xerces.", "javax.xml.", "org.xml.", "org.w3c.dom.*",
 		"org.apache.http.conn.ssl.*", "javax.net.ssl.*", "com.sun.org.apache.xalan.", "javax.activation.*",
-		 "javax.xml.*", "org.xml.*", "javax.management.*",
+		 "javax.xml.*", "org.xml.*", "javax.management.*","java.util.logging.*",
 		"javax.crypto.*" })
+
 public class ConjurAPITest {
 
 	public OkHttpClient client;
@@ -71,7 +72,7 @@ public class ConjurAPITest {
 		when(JwtToken.getToken(context)).thenReturn(
 				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
 		when(ConjurAPI.getAuthorizationToken(client, conjurConfiguration, context)).thenReturn("success");
-		assertEquals(ConjurAPI.getAuthorizationToken(client, conjurConfiguration, context), "success");
+		assertEquals("success",ConjurAPI.getAuthorizationToken(client, conjurConfiguration, context));
 
 	}
 

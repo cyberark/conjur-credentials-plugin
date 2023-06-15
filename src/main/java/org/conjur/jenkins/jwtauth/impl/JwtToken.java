@@ -32,229 +32,265 @@ import hudson.model.User;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
+/**
+ * Class to generate JWT Token and sign the request based on the JWT Token
+ */
 public class JwtToken {
-    private static final Logger LOGGER = Logger.getLogger(JwtToken.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(JwtToken.class.getName());
 
-    private static int DEFAULT_NOT_BEFORE_IN_SEC = 30;
+	private static int DEFAULT_NOT_BEFORE_IN_SEC = 30;
 
-    public static final DateTimeFormatter ID_FORMAT = DateTimeFormatter.ofPattern("MMddkkmmss")
-        .withZone(ZoneId.systemDefault());
+	public static final DateTimeFormatter ID_FORMAT = DateTimeFormatter.ofPattern("MMddkkmmss")
+			.withZone(ZoneId.systemDefault());
 
+	private static Queue<JwtRsaDigitalSignatureKey> keysQueue = new LinkedList<JwtRsaDigitalSignatureKey>();
 
-    private static Queue<JwtRsaDigitalSignatureKey> keysQueue = new LinkedList<JwtRsaDigitalSignatureKey>();
+	/**
+	 * JWT Claim
+	 */
+	public final JSONObject claim = new JSONObject();
 
-    /**
-     * JWT Claim
-     */
-    public final JSONObject claim = new JSONObject();
+	/**
+	 * Generates base64 representation of JWT token sign using "RS256" algorithm
+	 *
+	 * getHeader().toBase64UrlEncode() + "." + getClaim().toBase64UrlEncode() + "."
+	 * + sign
+	 *
+	 * @return base64 representation of JWT token
+	 */
+	public String sign() {
+		LOGGER.log(Level.FINE, "Signing Token");
+		try {
+			JsonWebSignature jsonWebSignature = new JsonWebSignature();
+			JwtRsaDigitalSignatureKey key = getCurrentSigningKey(this);
+			jsonWebSignature.setPayload(claim.toString());
+			jsonWebSignature.setKey(key.toSigningKey());
+			jsonWebSignature.setKeyIdHeaderValue(key.getId());
+			jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+			jsonWebSignature.setHeader(HeaderParameterNames.TYPE, "JWT");
+			return jsonWebSignature.getCompactSerialization();
+		} catch (JoseException e) {
+			String msg = "Failed to sign JWT token: " + e.getMessage();
+			LOGGER.log(Level.SEVERE, "Failed to sign JWT token", e);
+			throw new RuntimeException(msg, e);
+		}
 
-    /**
-     * Generates base64 representation of JWT token sign using "RS256" algorithm
-     *
-     * getHeader().toBase64UrlEncode() + "." + getClaim().toBase64UrlEncode() + "." + sign
-     *
-     * @return base64 representation of JWT token
-     */
-    public String sign() {
-        LOGGER.log(Level.FINE, "Signing Token");
-        try {
-            JsonWebSignature jsonWebSignature = new JsonWebSignature();
-            JwtRsaDigitalSignatureKey key = getCurrentSigningKey(this);
-            jsonWebSignature.setPayload(claim.toString());
-            jsonWebSignature.setKey(key.toSigningKey());
-            jsonWebSignature.setKeyIdHeaderValue(key.getId());
-            jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
-            jsonWebSignature.setHeader(HeaderParameterNames.TYPE, "JWT");
-            return jsonWebSignature.getCompactSerialization();
-        } catch (JoseException e) {
-            String msg = "Failed to sign JWT token: " + e.getMessage();
-            LOGGER.log(Level.SEVERE, "Failed to sign JWT token", e);
-            throw new RuntimeException(msg, e);
-        }
+	}
 
-    }
-    public static String getToken(Object context) {
-        return getToken("SecretRetrieval", context);
-    }
-    
-    /**
-     * Brings the JWT token from the configuration parameters.
-     * @param pluginAction
-     * @param context
-     * @return
-     */
-    public static String getToken(String pluginAction, Object context) {
-        LOGGER.log(Level.FINE, "***** Getting Token");
-        JwtToken unsignedToken = getUnsignedToken(pluginAction, context);
-        LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
-        return unsignedToken.sign();
-    }
-    
-    /**
-     * Brings the unsigned JWT Token from configuration parameters. 
-     * @param pluginAction
-     * @param context
-     * @return
-     */
-    public static JwtToken getUnsignedToken(String pluginAction, Object context) {
-        GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-        if (globalConfig == null || !globalConfig.getEnableJWKS()) {
-            LOGGER.log(Level.FINE, "No JWT Authentication");
-            return null;
-        }
+	/**
+	 * retrun the JWT Token for the context
+	 * 
+	 * @param context
+	 * @return JWT Token as string
+	 */
+	public static String getToken(Object context) {
+		return getToken("SecretRetrieval", context);
+	}
 
-        Authentication authentication = Jenkins.getAuthentication();
+	/**
+	 * return the JWT Token for the pluginAction and Context
+	 * 
+	 * @param pluginAction
+	 * @param context
+	 * @return JWT Token as String
+	 */
 
-        String userId = authentication.getName();
+	public static String getToken(String pluginAction, Object context) {
+		LOGGER.log(Level.FINE, "***** Getting Token");
+		JwtToken unsignedToken = getUnsignedToken(pluginAction, context);
+		LOGGER.log(Level.FINEST, "Claims:\n{0}", unsignedToken.claim.toString(4));
+		return unsignedToken.sign();
+	}
 
-        User user = User.get(userId, false, Collections.emptyMap());
-        String fullName = null;
-        if(user != null) {
-            fullName = user.getFullName();
-            userId = user.getId();
-          
-        }
-        String issuer = Jenkins.get().getRootUrl();
-        if (issuer.substring(issuer.length() - 1).equals("/")) {
-            issuer = issuer.substring(0, issuer.length() - 1);
-        }
-        LOGGER.log(Level.FINEST, "RootURL => {0}", Jenkins.get().getRootUrl());
+	/**
+	 * generates a new JWT token
+	 * 
+	 * @param pluginAction
+	 * @param context
+	 * @return JWTToken
+	 */
 
-        JwtToken jwtToken = new JwtToken();
-        jwtToken.claim.put("jti", UUID.randomUUID().toString().replace("-",""));
-        jwtToken.claim.put("aud", globalConfig.getJwtAudience());
-        jwtToken.claim.put("iss", issuer);
-        jwtToken.claim.put("sub", userId);
-        jwtToken.claim.put("name", fullName);
-        long currentTime = System.currentTimeMillis()/1000;
-        jwtToken.claim.put("iat", currentTime);
-        jwtToken.claim.put("exp", currentTime + GlobalConjurConfiguration.get().getTokenDurarionInSeconds());
-        jwtToken.claim.put("nbf", currentTime - DEFAULT_NOT_BEFORE_IN_SEC);
+	public static JwtToken getUnsignedToken(String pluginAction, Object context) {
+		LOGGER.log(Level.FINE, "Start getUnsignedToken()");
+		GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+		if (globalConfig == null || !globalConfig.getEnableJWKS()) {
+			LOGGER.log(Level.FINE, "No JWT Authentication");
+			return null;
+		}
 
-        LOGGER.log(Level.FINE, "Context => " + context);
+		Authentication authentication = Jenkins.getAuthentication();
 
-        ModelObject contextObject = (ModelObject) context; 
+		String userId = authentication.getName();
 
-        if (contextObject instanceof Run) {
-            Run run = (Run) contextObject;
-            jwtToken.claim.put("jenkins_build_number", run.getNumber());
-            contextObject = run.getParent();
-        }
+		User user = User.get(userId, false, Collections.emptyMap());
+		String fullName = null;
+		if (user != null) {
+			fullName = user.getFullName();
+			userId = user.getId();
 
-        if (contextObject instanceof AbstractItem) {
+		}
+		String issuer = Jenkins.get().getRootUrl();
+		if (issuer.substring(issuer.length() - 1).equals("/")) {
+			issuer = issuer.substring(0, issuer.length() - 1);
+		}
+		LOGGER.log(Level.FINEST, "RootURL => {0}", Jenkins.get().getRootUrl());
 
-            if (contextObject instanceof Job) {
-                Job job = (Job) contextObject;
-                jwtToken.claim.put("jenkins_pronoun", job.getPronoun());
-            }
+		JwtToken jwtToken = new JwtToken();
+		jwtToken.claim.put("jti", UUID.randomUUID().toString().replace("-", ""));
+		jwtToken.claim.put("aud", globalConfig.getJwtAudience());
+		jwtToken.claim.put("iss", issuer);
+		jwtToken.claim.put("sub", userId);
+		jwtToken.claim.put("name", fullName);
+		long currentTime = System.currentTimeMillis() / 1000;
+		jwtToken.claim.put("iat", currentTime);
+		jwtToken.claim.put("exp", currentTime + GlobalConjurConfiguration.get().getTokenDurarionInSeconds());
+		jwtToken.claim.put("nbf", currentTime - DEFAULT_NOT_BEFORE_IN_SEC);
 
-            AbstractItem item = (AbstractItem) contextObject;
-            jwtToken.claim.put("jenkins_full_name", item.getFullName());
-            jwtToken.claim.put("jenkins_name", item.getName());
-            jwtToken.claim.put("jenkins_task_noun", item.getTaskNoun());
-            if (item instanceof ItemGroup) {
-                ItemGroup itemGroup = (ItemGroup) item;
-                jwtToken.claim.put("jenkins_url_child_prefix", itemGroup.getUrlChildPrefix());
-            }
-            if (item instanceof Job) {
-                Job job = (Job) item;
-                jwtToken.claim.put("jenkins_job_buildir", job.getBuildDir().getAbsolutePath());
-            }
+		LOGGER.log(Level.FINE, "Context => {0}", context);
 
-            ItemGroup parent = item.getParent();
-            if (parent != null && parent instanceof AbstractItem) {
-                item =  (AbstractItem) parent;
-                jwtToken.claim.put("jenkins_parent_full_name", item.getFullName());
-                jwtToken.claim.put("jenkins_parent_name", item.getName());
-                jwtToken.claim.put("jenkins_parent_task_noun", item.getTaskNoun());
-                if (item instanceof ItemGroup) {
-                    ItemGroup itemGroup = (ItemGroup) item;
-                    jwtToken.claim.put("jenkins_parent_url_child_prefix", itemGroup.getUrlChildPrefix());
-                }
-                if (item instanceof Job) {
-                    Job job = (Job) item;
-                    jwtToken.claim.put("jenkins_parent_pronoun", job.getPronoun());
-                }
-            }
+		ModelObject contextObject = (ModelObject) context;
 
-            // Add identity field
-            List<String> identityFields = Arrays.asList(globalConfig.getIdentityFormatFieldsFromToken().split(","));
-            String fieldSeparator = globalConfig.getIdentityFieldsSeparator();
-            StringBuffer identityValue = new StringBuffer();
-            for (String identityField : identityFields) {
-                if (jwtToken.claim.has(identityField)) {
-                    String fieldValue = jwtToken.claim.getString(identityField);
-                    if (identityValue.length() != 0) identityValue.append(fieldSeparator);
-                    identityValue.append(fieldValue);
-                }
-            }
-            if (identityValue.length() > 0) jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
+		if (contextObject instanceof Run) {
+			Run run = (Run) contextObject;
+			jwtToken.claim.put("jenkins_build_number", run.getNumber());
+			contextObject = run.getParent();
+		}
 
-        }
-        return jwtToken;
-    }
+		if (contextObject instanceof AbstractItem) {
 
-    protected static JwtRsaDigitalSignatureKey getCurrentSigningKey(JwtToken jwtToken) {
+			if (contextObject instanceof Job) {
+				Job job = (Job) contextObject;
+				jwtToken.claim.put("jenkins_pronoun", job.getPronoun());
+			}
 
-        JwtRsaDigitalSignatureKey result = null; 
-        long currentTime = System.currentTimeMillis()/1000;
-        long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
+			AbstractItem item = (AbstractItem) contextObject;
+			jwtToken.claim.put("jenkins_full_name", item.getFullName());
+			jwtToken.claim.put("jenkins_name", item.getName());
+			jwtToken.claim.put("jenkins_task_noun", item.getTaskNoun());
+			if (item instanceof ItemGroup) {
+				ItemGroup itemGroup = (ItemGroup) item;
+				jwtToken.claim.put("jenkins_url_child_prefix", itemGroup.getUrlChildPrefix());
+			}
+			if (item instanceof Job) {
+				Job job = (Job) item;
+				jwtToken.claim.put("jenkins_job_buildir", job.getBuildDir().getAbsolutePath());
+			}
 
-        //access via Iterator
-        Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
-        while(iterator.hasNext()) {
-            JwtRsaDigitalSignatureKey key = iterator.next();
-            if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
-                if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
-                    result = key;
-                    break;
-                }
-            } else {
-                iterator.remove();
-            }
-        }
+			ItemGroup parent = item.getParent();
+			if (parent != null && parent instanceof AbstractItem) {
+				item = (AbstractItem) parent;
+				jwtToken.claim.put("jenkins_parent_full_name", item.getFullName());
+				jwtToken.claim.put("jenkins_parent_name", item.getName());
+				jwtToken.claim.put("jenkins_parent_task_noun", item.getTaskNoun());
+				if (item instanceof ItemGroup) {
+					ItemGroup itemGroup = (ItemGroup) item;
+					jwtToken.claim.put("jenkins_parent_url_child_prefix", itemGroup.getUrlChildPrefix());
+				}
+				if (item instanceof Job) {
+					Job job = (Job) item;
+					jwtToken.claim.put("jenkins_parent_pronoun", job.getPronoun());
+				}
+			}
 
-        if (result == null) {
-            String id = ID_FORMAT.format(Instant.now());
-            result = new JwtRsaDigitalSignatureKey(id);
-            keysQueue.add(result);
-        }
+			// Add identity field
+			List<String> identityFields = Arrays.asList(globalConfig.getIdentityFormatFieldsFromToken().split(","));
+			String fieldSeparator = globalConfig.getIdentityFieldsSeparator();
+			StringBuffer identityValue = new StringBuffer();
+			for (String identityField : identityFields) {
+				if (jwtToken.claim.has(identityField)) {
+					String fieldValue = jwtToken.claim.getString(identityField);
+					if (identityValue.length() != 0)
+						identityValue.append(fieldSeparator);
+					identityValue.append(fieldValue);
+				}
+			}
+			if (identityValue.length() > 0)
+				jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
 
-        return result;
-    }
+		}
+		LOGGER.log(Level.FINE, "End getUnsignedToken()");
+		return jwtToken;
+	}
 
-    protected static JSONObject getJwkset() {
+	/**
+	 * retrieves the CurrentSigningKey for the JWT Token
+	 * 
+	 * @param jwtToken
+	 * @return key based on JwtRsaDigitalSignatureKey
+	 */
 
+	protected static JwtRsaDigitalSignatureKey getCurrentSigningKey(JwtToken jwtToken) {
+		LOGGER.log(Level.FINE, "Start of getCurrentSigningKey())");
 
-        JSONObject jwks = new JSONObject();
-        JSONArray keys = new JSONArray();
+		JwtRsaDigitalSignatureKey result = null;
+		long currentTime = System.currentTimeMillis() / 1000;
+		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
 
-        long currentTime = System.currentTimeMillis()/1000;
-        long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
+		// access via Iterator
+		Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
+		while (iterator.hasNext()) {
+			JwtRsaDigitalSignatureKey key = iterator.next();
+			if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
+				if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
+					result = key;
+					break;
+				}
+			} else {
+				iterator.remove();
+			}
+		}
 
-        //access via Iterator
-        Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
-        while(iterator.hasNext()) {
-            JwtRsaDigitalSignatureKey key = iterator.next();
-            if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
-                JSONObject jwk = new JSONObject();
-                jwk.put("kty", "RSA");
-                jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
-                jwk.put("kid", key.getId());
-                jwk.put("use", "sig");
-                jwk.put("key_ops", Collections.singleton("verify"));
-                jwk.put("n", Base64.getUrlEncoder().withoutPadding().encodeToString(key.getPublicKey().getModulus().toByteArray()));
-                jwk.put("e", Base64.getUrlEncoder().withoutPadding().encodeToString(key.getPublicKey().getPublicExponent().toByteArray()));
-                keys.put(jwk);
-        
-            } else {
-                iterator.remove();
-            }
-        }
+		if (result == null) {
+			String id = ID_FORMAT.format(Instant.now());
+			result = new JwtRsaDigitalSignatureKey(id);
+			keysQueue.add(result);
+		}
+		LOGGER.log(Level.FINE, "End of getCurrentSigningKey())");
 
-        jwks.put("keys", keys);
-        
-        return jwks;
-    }
+		return result;
+	}
+
+	/**
+	 * check for the key creation time is < max_key_time_in_sec,if true then
+	 * generate new JwkSet
+	 * 
+	 * @return JwkSet as JSONObject
+	 */
+
+	protected static JSONObject getJwkset() {
+		LOGGER.log(Level.FINE, "Start of getJwkset() ");
+
+		JSONObject jwks = new JSONObject();
+		JSONArray keys = new JSONArray();
+
+		long currentTime = System.currentTimeMillis() / 1000;
+		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
+
+		// access via Iterator
+		Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
+		while (iterator.hasNext()) {
+			JwtRsaDigitalSignatureKey key = iterator.next();
+			if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
+				JSONObject jwk = new JSONObject();
+				jwk.put("kty", "RSA");
+				jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
+				jwk.put("kid", key.getId());
+				jwk.put("use", "sig");
+				jwk.put("key_ops", Collections.singleton("verify"));
+				jwk.put("n", Base64.getUrlEncoder().withoutPadding()
+						.encodeToString(key.getPublicKey().getModulus().toByteArray()));
+				jwk.put("e", Base64.getUrlEncoder().withoutPadding()
+						.encodeToString(key.getPublicKey().getPublicExponent().toByteArray()));
+				keys.put(jwk);
+
+			} else {
+				iterator.remove();
+			}
+		}
+
+		jwks.put("keys", keys);
+		LOGGER.log(Level.FINE, "End of getJwkset() ");
+		return jwks;
+	}
 
 }

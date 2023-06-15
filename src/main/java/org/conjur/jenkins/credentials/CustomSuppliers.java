@@ -1,10 +1,10 @@
 package org.conjur.jenkins.credentials;
 
-import com.google.common.base.Preconditions;
-
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.function.Supplier;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Adaptation of Guava's ExpiringMemoizingSupplier which adds lazy duration lookup functionality.
