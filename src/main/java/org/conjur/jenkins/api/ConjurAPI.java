@@ -92,10 +92,10 @@ public class ConjurAPI {
 				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
 						((Run) context).getParent(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
 			} else {
-
+                                   if((context instanceof AbstractItem)) {
 				availableCredentials.addAll(CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class,
 						(AbstractItem) context, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
-
+				   }
 			}
 		}
 
@@ -311,8 +311,8 @@ public class ConjurAPI {
 	@SuppressWarnings("unchecked")
 	private static ConjurConfiguration inheritedConjurConfiguration(Item job) {
 		LOGGER.log(Level.FINE, "Start of inheritedConjurConfiguration()");
-		for (ItemGroup<? extends Item> g = job != null ? job.getParent()
-				: null; g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
+		for (ItemGroup<? extends Item> g = job !=null?
+				job.getParent():null; g instanceof AbstractFolder; g = ((AbstractFolder<? extends Item>) g).getParent()) {
 			FolderConjurConfiguration fconf = ((AbstractFolder<?>) g).getProperties()
 					.get(FolderConjurConfiguration.class);
 			if (!(fconf == null || fconf.getInheritFromParent())) {
