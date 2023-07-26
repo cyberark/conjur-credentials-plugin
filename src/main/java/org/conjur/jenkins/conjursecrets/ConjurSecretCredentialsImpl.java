@@ -95,6 +95,8 @@ public class ConjurSecretCredentialsImpl extends BaseStandardCredentials impleme
 			OkHttpClient client = ConjurAPIUtils.getHttpClient(this.conjurConfiguration);
 			// Authenticate to Conjur
 			String authToken = ConjurAPI.getAuthorizationToken(client, this.conjurConfiguration, storeContext);
+			if(authToken ==null)
+				throw new NullPointerException("Error fetching secret from Conjur auth Token is null");
 			// Retrieve secret from Conjur
 			String secretString = ConjurAPI.getSecret(client, this.conjurConfiguration, authToken, this.variablePath);
 			result = secretString;

@@ -180,13 +180,17 @@ public interface ConjurSecretCredentials extends StandardCredentials {
 	 */
 	static Secret getSecretFromCredentialIDWithConfigAndContext(String credentialID,
 			ConjurConfiguration conjurConfiguration, ModelObject context, ModelObject storeContext) {
-
+		Secret secret = null;
 		ModelObject effectiveContext = context != null ? context : storeContext;
 
 		LOGGER.log(Level.FINE, "Getting Secret with CredentialID: {0},{1}", new Object[] { context, credentialID });
 		ConjurSecretCredentials credential = credentialWithID(credentialID, effectiveContext);
 
-		return credential.secretWithConjurConfigAndContext(conjurConfiguration, effectiveContext);
+		if (credential != null)
+		  secret = credential.secretWithConjurConfigAndContext(conjurConfiguration, effectiveContext);
+
+		 return secret;
+
 	}
 
 }
