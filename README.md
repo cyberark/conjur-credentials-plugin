@@ -2,7 +2,7 @@
 
 # conjur-credentials-plugin
 
-**This repo is no longer maintained. See https://github.com/jenkinsci/conjur-credentials-plugin for the latest code!**
+**This repo is no longer maintained. See https://github.cyberng.com/Conjur-Enterprise/conjur-credentials-plugin for the latest code!**
 
 This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
 
@@ -11,17 +11,44 @@ This Conjur plugin securely provides credentials that are stored in Conjur to Je
 * [SECURING SECRETS ACROSS THE CI/CD PIPELINE](https://www.conjur.org/use-cases/ci-cd-pipelines/)
 * [CI/CD Servers Know All Your Plumbing Secrets](https://www.conjur.org/blog/ci-cd-servers-know-all-your-plumbing-secrets/)
 
-## Usage
 
-Install the plugin using Jenkins "Plugin Manager" with an administrator account. After installing the plugin and restarting Jenkins, you are ready to start. 
+## Technical Requirement
+----------------------------------------------
+| <b> Technology				 | <b> Version            |
+|---------------------------|--------------------|
+| Java  					        	|    11			         |
+| Jenkins Server            |    Minimum(2.346.2)|
+|				                    |    2.405           |
+|						               	|    2.375.2         |
+|							              |    LTS version     |
+| Conjur OSS                |    1.9+            |
+| Conjur Enterprise         |    12.5+           |
+| Conjur Cloud              |    		             |
+| conjur-crednetial-plugin  |    Latest          |
+
+--------------------------------------------------
+
+
+
+# Prequisites
+
+
+## Plugin Installation
+
+Install the conjur-credentials plugin using Jenkins "Plugin Manager" with an administrator account. After installing the plugin and restarting Jenkins, pipeline can be run/build to fetch the secrets from Conjur Vault.
+
+## Coniguring Conjur Parameters in Jenkins 
 
 ### Global Configuration
 
 A global configuration allows any job to use the configuration, unless a folder-level configuration overrides the global configuration. Click the **Global Credentials** tab.
 
- Define the Conjur Account and Appliance URL to use.
+Manage Jenkins -> System Configuration -> Configure System -> Conjur Appliance and define the Conjur Account and Appliance URL to use .
+
 
 ![Global Configuration](docs/images/GlobalConfiguration.png)
+
+Once the identity is configured, 
 
 ### Global Configuration: Conjur JWT Authentication
 
@@ -34,7 +61,10 @@ Once enabled, any job that runs from Jenkins where a Conjur Login Credential has
 
 You need to define the following as well:
 
-* Auth WebService ID: The Service ID of your JWT Authenticator webservice. [See doc here](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Developer/Conjur_API_JWT_Authenticator.htm). This could be either the service id or authenticator_type/service_id (authn-jwt/id)
+##### Reference : [See doc here](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Developer/Conjur_API_JWT_Authenticator.htm) , 
+
+* Auth WebService ID: The Service ID of your JWT Authenticator webservice. 
+* This could be either the service id or authenticator_type/service_id (authn-jwt/id)
 * JWT Audience: the aud value in the JWT Token
 * Signing Key Lifetime in Minutes: For how long will the signing key for JWT Tokens will be valid, and exposed via the JWT key set endpoint
 * JWT Token Duration In Seconds: This will the lifetime of any JWT token generated via the conjur-credentials plugin
@@ -42,7 +72,7 @@ You need to define the following as well:
 * Identity Format Fields: Comma separated list of JWT Claim fields to be concatenated for the value of the Identity Field. 
 * Identity Fields Separator: The character(s) to be used in the concatenation of the format fields. 
 * Enable Context Aware Credential Stores: Please see following section. 
-
+* 
 **Note:** CyberArk recommends keeping the token and key TTL values the minimum possible based on context. 
 
 ### How to obtain JWT Token Claims
@@ -56,15 +86,16 @@ This information can be used by the Conjur Security Administrator to grant acces
 
 ### Global Configuration: Context Aware Credential Stores  (Conjur Credentials Provider)
 
-When Context Aware Credential Stores is enabled, the conjur-credentials plugin will act as a Credential Provider and populate stores with the available secrets/variables based on the current context of the navigation. For this feature, JWT Authentication is used and the JWT Key Set Endpoint needs to be enabled. The credentials provided by the context aware store are available to be used as if they were defined statically.
+When Context Aware Credential Stores is enabled, the conjur-credentials plugin will act as a Credential Provider and populate stores with the available variables based on the current context of the navigation. For this feature, JWT Authentication is used and the JWT Key Set Endpoint needs to be enabled. The credentials provided by the context aware store are available to be used as if they were defined statically. 
+
 
 ![Context Aware Credential Stores](docs/images/Context-Aware-Credential-Stores.png)
-
-#### Annotations for secrets/variables
+### Updating Policy file for variables
+### Annotations for variables
 
 You can add annotations in your Conjur policy to expand the credentials available through the Context Aware Credential Store. 
 
-For any secret variable in Conjur available to the context a "Conjur Secret Credential" credential will be exposed. 
+For any secret variable  defined in the Conjur Vault, will be available to the context and exposed as credential named as "Conjur Secret Credential". 
 
 With the following annotations: 
 * jenkins_credential_type: if set to `usernamecredential` an additional credential (of type "Conjur Secret Username Credential") with a prefix of "username-" will be added. Otherwise, if set to "usernamesshkeycredential" the additional credential of type "Conjur Secret Username SSHKey Credential" with a prefix of "usernamesshkey-" will be exposed.
@@ -96,11 +127,11 @@ Requests to Conjur will fail unless:
 * Conjur is not set up to use SSL.
 
 
-### Conjur Login Credential (In case of not using JWT Authentication)
+### Conjur Login Credential (API Key Authentication)
 
 The first step is to store the credential required for Jenkins to connect to Conjur. Click the **Credentials** tab.
 
-Define the credential as a standard "Username with password" credential. In the example below, the credentials are a Conjur host and its API key:
+Define the credential as a standard "Username with password" credentia
 
 * **Username** is host/frontend/frontend-01. The host must already be defined as a host in Conjur policy.
 * **Password** is the API key for that host. The API key is the value returned by Conjur when the host is loaded in policy.
@@ -113,6 +144,7 @@ Define the credential as a standard "Username with password" credential. In the 
 The secrets that you want to obtain from Conjur can be defined explicitly. Use the **ConjurSecret** tab to define secrets. Define them as credentials of kind "Conjur Secret Credential", "Conjur Secret Username Credential" or "Conjur Secret Username SSHKey Credential".
 
 ![Conjur Secret Definition](docs/images/ConjurSecret-Credential.png)
+
 
 ### Usage from a Jenkins pipeline script
 
@@ -173,6 +205,47 @@ To bind to Conjur secrets, use the option "Use secret text(s) or file(s)" in the
 ![Secret bindings on Freestyle Project](docs/images/SecretBindingsOnFreestyle.png)
 
 Secrets are injected as environment variables to the build steps of the project.
+
+### Conjur Multi Folder Level - Configuration
+
+Configuring Login credentials refer to Global Configuration section [See Global Configuration section](#global-configuration)
+
+### Usage from a Jenkins pipeline script
+
+To reference Conjur secrets in a Jenkins script, use `withCredentials` and the symbol `conjurSecretCredential`, `conjurSecretUsername` or `conjurSecretUsernameSSHKey`.
+
+Here some examples showing how to fetch the secret from a Jenkins job pipeline definition.
+
+
+```groovy
+node {
+   stage('folder/parent_credentials') {
+      withCredentials([conjurSecretCredential(credentialsId: 'PARENT_CREDENTIALS_1', 
+                                              variable: 'SECRET')]) {
+         echo 'Hello World $SECRET'
+      }
+   }
+   
+   stage(child pipelines under parent/folder can fetch the parent/folder level credentials and its own credentials but not the other child pipeline credentials created with in the same folder/parent') {
+      echo "print parent/folder credentials"
+      withCredentials([conjurSecretCredential(credentialsId: 'PARENT_CREDENTIALS_1', 
+                                              variable: 'SECRET')]) {
+         echo 'Hello World $SECRET'
+      }
+      
+      echo "print child pipeline credentials"
+      withCredentials([conjurSecretCredential(credentialsId: 'PIPELINE1_CREDENTIALS_1', 
+                                              variable: 'SECRET_1')]) {
+         echo 'Hello World $SECRET_1'
+      }
+      
+   }
+   stage('Results') {
+      echo 'Finished!'
+   }
+}
+```
+
 
 ## License
 
