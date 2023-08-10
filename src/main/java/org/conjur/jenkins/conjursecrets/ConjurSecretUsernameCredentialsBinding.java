@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.conjur.jenkins.credentials.ConjurCredentialStore;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
@@ -21,6 +22,10 @@ import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
+/**
+ * Bind the ConjurSecretCredential based on UserNameCredential
+ *
+ */
 public class ConjurSecretUsernameCredentialsBinding extends MultiBinding<ConjurSecretUsernameCredentials> {
 
 	@Symbol("conjurSecretUsername")
@@ -42,6 +47,7 @@ public class ConjurSecretUsernameCredentialsBinding extends MultiBinding<ConjurS
 			return ConjurSecretUsernameCredentials.class;
 		}
 	}
+
 	private static final Logger LOGGER = Logger.getLogger(ConjurSecretUsernameCredentialsBinding.class.getName());
 
 	private String usernameVariable;
@@ -53,11 +59,20 @@ public class ConjurSecretUsernameCredentialsBinding extends MultiBinding<ConjurS
 		super(credentialsId);
 	}
 
+	/**
+	 * @return map containing username and passowrd and assign to MulitEnvironment.
+	 */
 	@Override
 	public MultiEnvironment bind(Run<?, ?> build, FilePath workSpace, Launcher launcher, TaskListener listener)
 			throws IOException, InterruptedException {
+		LOGGER.log(Level.FINE, "Start of bind()");
+		LOGGER.log(Level.FINE, "Binding UserName and Password");
 
-		LOGGER.log(Level.INFO, "Binding UserName and Password");
+		ConjurCredentialStore store = ConjurCredentialStore.getAllStores()
+				.get(String.valueOf(build.getParent().hashCode()));
+		if (store != null) {
+			store.getProvider().getStore(build);
+		}
 
 		ConjurSecretUsernameCredentials conjurSecretCredential = getCredentials(build);
 		conjurSecretCredential.setContext(build);
@@ -69,23 +84,37 @@ public class ConjurSecretUsernameCredentialsBinding extends MultiBinding<ConjurS
 
 	}
 
+	/** @return password */
 	public String getPasswordVariable() {
 		return this.passwordVariable;
 	}
 
+	/** @return username */
 	public String getUsernameVariable() {
 		return this.usernameVariable;
 	}
 
+	/**
+	 * set password
+	 * 
+	 * @param passwordVariable
+	 */
+
 	@DataBoundSetter
 	public void setPasswordVariable(String passwordVariable) {
-		LOGGER.log(Level.INFO, "Setting Password variable to {0}", passwordVariable);
+		LOGGER.log(Level.FINE, "Setting Password variable to {0}", passwordVariable);
 		this.passwordVariable = passwordVariable;
 	}
 
+	/**
+	 * set userName
+	 * 
+	 * @param usernameVariable
+	 */
+
 	@DataBoundSetter
 	public void setUsernameVariable(String usernameVariable) {
-		LOGGER.log(Level.INFO, "Setting Username variable to {0}", usernameVariable);
+		LOGGER.log(Level.FINE, "Setting Username variable to {0}", usernameVariable);
 		this.usernameVariable = usernameVariable;
 	}
 

@@ -12,6 +12,11 @@
     </f:entry>
     <f:entry title="${%Conjur SSL Certificate}" field="certificateCredentialID" name="certificateCredentialID">
     	<c:select/>
-    </f:entry>
-    
+    </f:entry>    
+    <f:validateButton
+   title="${%JWT Token Claims}" progress="${%resolving...}"
+   method="obtainJwtToken" />
+   <f:validateButton
+   title="${%Refresh Credential Store}" progress="${%resolving...}"
+   method="refreshCredentialSupplier" />
 </j:jelly>
